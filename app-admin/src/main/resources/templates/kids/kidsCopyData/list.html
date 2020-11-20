@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+<th:block th:replace="fragments/headTag2 ::style "></th:block></head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">[[#{i18n.all}]]
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+            <a class="nav-link btn btn-border ml-auto" data-toggle="tab" href="#addTab"><span class="btn-label"> <i
+                    class="fa fa-plus"></i></span> [[#{i18n.addNew}]]
+            </a>
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+<div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+ <div class="card">
+<div class="card-header">
+                <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                    <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                    <input type="hidden" name="pageSize" value="20" >
+                    
+                                        <div class="form-group">
+    <label th:text="#{kids.kidsCopyData.tableName}">表名</label>
+    <input type="text" class="form-control" name="tableName" >
+</div>                    <div class="form-group">
+    <label th:text="#{kids.kidsCopyData.content}">内容</label>
+    <input type="text" class="form-control" name="content" >
+</div>
+                    <div >
+                        <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                    </div>
+
+                </form>
+
+            </div>
+<div class="card-body table-responsive" id="datalist"></div>
+   </div>
+    </div>
+    
+     <div id="addTab" class="tab-pane fade">
+     <form id="form_add" name="form" method="post"  >
+
+         <div class="form-group">
+            <label th:text="#{kids.kidsCopyData.tableName}+':'">表名:</label>
+                <input type="text"  name="tableName" placeholder="表名" class="form-control" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsCopyData.content}+':'">内容:</label>
+         <textarea name="content" placeholder="内容" class="form-control"  rows="5" ></textarea>
+        </div>
+
+        <div class="form-group">
+            	                <input type="hidden" name="id"/>
+                           <input type="button" class="btn btn-primary" onclick='submitFn("add","#form_add")'  value="提交"
+                       th:value="#{i18n.submit}"/>
+                 
+        </div>
+
+    </form>
+    </div>
+    
+</div>
+</div>
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $("#queryBtn").click(queryStart);
+		 queryStart();
+    });
+    function editFun(url){
+     openWindow({
+                title:/*[[#{i18n.add('')}]]*/"",
+                url:url,
+                complete:function (resData){
+                    loadData();
+                }
+            });
+    }
+     function submitFn(url,formobj) {
+        loadJsonData({url:url,data:$(formobj).serialize(),complete:function(resultData){
+                queryStart();
+                alertLayer(resultData.msg);
+            }});
+        // $("#form_1").submit();
+    }
+     function deleteFun(data)
+    {
+         confirmLayer({title:/*[[#{i18n.confirm.delete.title}]]*/"确定要删除？",
+            msg:/*[[#{i18n.confirm.delete.unrevert}]]*/"删除后数据无法恢复!",
+            noTitle:/*[[#{i18n.cancel}]]*/"取消",
+            yesTitle:/*[[#{i18n.yes}]]*/"确定",yesFn:function(){
+                loadJsonData({url:"delete",data:data,complete:function(resultData){
+                        if(resultData.code)
+                        {
+                            queryStart();
+                        }
+                        alertLayer(resultData.msg);
+                    }});
+            }});
+        return false;
+    }
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+</script>
+</body>
+</html>

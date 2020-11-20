@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="alert alert-warning" role="alert" th:if="${error !=null }" th:text="${error.message}">
+
+</div>
+
+<div class="form-panel">
+    <form id="form_add" name="form" method="post"  >
+
+         <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.categoryId}+':'">类别:</label>
+                <input type="text"  name="categoryId" placeholder="类别" class="form-control" th:value="${kidsMediaMetadataDo?.categoryId}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.title}+':'">名称:</label>
+                <input type="text"  name="title" placeholder="名称" class="form-control" th:value="${kidsMediaMetadataDo?.title}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.imageUrl}+':'">图片地址:</label>
+                <input type="text"  name="imageUrl" placeholder="图片地址" class="form-control" th:value="${kidsMediaMetadataDo?.imageUrl}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.mediaType}+':'">媒体类别:</label>
+                <input type="text"  name="mediaType" placeholder="媒体类别" class="form-control" th:value="${kidsMediaMetadataDo?.mediaType}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.mediaUrl}+':'">媒体地址:</label>
+                <input type="text"  name="mediaUrl" placeholder="媒体地址" class="form-control" th:value="${kidsMediaMetadataDo?.mediaUrl}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.sourceUrl}+':'">来源:</label>
+                <input type="text"  name="sourceUrl" placeholder="来源" class="form-control" th:value="${kidsMediaMetadataDo?.sourceUrl}" />
+        </div>        <div class="form-group">
+            <label th:text="#{kids.kidsMediaMetadata.descs}+':'">备注:</label>
+                <input type="text"  name="descs" placeholder="备注" class="form-control" th:value="${kidsMediaMetadataDo?.descs}" />
+        </div>
+
+        <div class="form-group">
+            	                <input type="hidden" name="id" th:value="${kidsMediaMetadataDo?.id}"/>
+                
+                    <input type="button" class="btn btn-primary" th:onclick='submitFn("../edit/[[${kidsMediaMetadataDo?.id}]]")'  value="保存"
+                           th:value="#{i18n.submit}"/>
+                 
+        </div>
+
+    </form>
+</div>
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    function submitFn(url) {
+    	loadJsonData({url:url,data:$("#form_add").serialize(),complete:function(resultData){
+                alertLayer(resultData.msg);
+            }});
+    }
+</script>
+</div></body>
+</html>
+ 

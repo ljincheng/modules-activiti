@@ -1,0 +1,48 @@
+@charset "UTF-8";
+
+table.infor{
+	border-collapse: separate;
+    border-spacing: 2px;
+    width:90%;
+}
+table.infor td.inforTitle,table.infor th{
+	 height: 24px;
+    line-height: 24px;
+    width: 120px;
+    min-width: 70px;
+    color: #888888;
+    font-size: 14px;
+    text-align: right;
+    font-family: "Microsoft YaHei", 微软雅黑, SimSun, 宋体;
+    font-weight: normal;
+    
+}
+table.infor td,th.inforContent{
+	    height: 24px;
+    line-height: 24px;
+    border-bottom: 1px solid #dddddd;
+    width:20%;
+    max-width: 300px;
+    overflow: hidden;
+    color: #333333;
+    padding: 0px 10px;
+    font-size: 14px;
+    text-align: left;
+}
+
+div.person_bg{
+	height: 98px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+    background-image: url(../images/bg/person_bg_bg.png);
+}
+
+div.person_bg div.person{
+	    height:98px;
+    padding: 10px 0px;
+    background-repeat: no-repeat;
+    background-image: url(../images/bg/person_bg.png);
+} 
+	
+}

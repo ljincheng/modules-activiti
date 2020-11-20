@@ -1,0 +1,16 @@
+<div id="alertContent" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+
+
+        <div class="form-group" th:unless="${#lists.isEmpty(roleList)}" >
+            <th:block th:each="modelObj,status :${roleList}">
+
+
+                <label class="checkbox-inline" style="width:150px;">
+                    <input type="checkbox" name="rolelist" th:checked="${modelObj.userId !=null}"   th:value="${modelObj.id}" th:text="${modelObj.name}"/>
+                </label>
+
+
+            </th:block>
+        </div>
+        <div class="form-group"> <input type="button" class="btn btn-primary" value="保存"  th:value="#{i18n.save('')}" th:onclick="addUserRoleList('[(${userId })]')" /></div>
+</div>

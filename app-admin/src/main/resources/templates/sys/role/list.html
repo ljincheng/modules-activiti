@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="defaultAlertPanel"></div>
+<div class="container-fluid">
+    <div class="k_container k_container_bg_color">
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                    <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                    <input type="hidden" name="pageSize" value="20" >
+                    <input type="hidden" name="roleId" th:value="${roleId}"  >
+                    <div class="form-group">
+                        <label for="userName" th:text="#{i18n.name(#{sys.role})}+' :'">名称:</label>
+                        <input type="text" id="userName" name="name" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label th:text="#{i18n.status} +' :'">状态:</label>
+                        <select name="available" class="form-control">
+                            <option value="" th:text="#{i18n.choose}"> 全部</option>
+                            <option value="1" th:text="#{i18n.open('')}"> 有效</option>
+                            <option value="0" th:text="#{i18n.close('')}"> 无效</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                            <a secure:hasPermission="sys:role:add" class="btn btn-primary" data-toggle="modal" href="add" th:text="#{i18n.add(#{sys.role})}">增加角色</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+        <div class="panel panel-default mt10">
+            <div class="panel-body" id="datalist" >
+
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript">
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#defaultAlertPanel").html("");
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+
+    function editRole()
+    {
+        loadTableData({url:"edit",data:$("#form_editRole").serialize(),id:"editRolePage"})
+    }
+    function addRole()
+    {
+        loadTableData({url:"add",data:$("#form_addRole").serialize(),id:"addRolePage"})
+    }
+    function delRole(id,msg)
+    {
+        confirmLayer({msg:"确定要删除\""+msg+"\"角色",yesFn:function(){
+                loadJsonData({url:"delete?id="+id,complete:function(data){
+                    if(data.code==1)
+                    {
+                        loadData();
+                    }
+                        alertLayer(data.msg,{id:"defaultAlertPanel",icon:data.code});
+
+                    }});
+            }});
+    }
+    $(function(){
+        $("#queryBtn").click(queryStart);
+        queryStart();
+    });
+</script>
+</body>
+</html>

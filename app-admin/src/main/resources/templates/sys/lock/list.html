@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<div id="activity">
+    <div class="form-panel">
+        <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+            <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+            <input type="hidden" name="pageSize" value="20" >
+            <div class="form-group">
+                <label for="startDate" th:text="#{i18n.createTime}+' :'">时间：</label>
+                <input id="startDate" class="form-control" type="text" name="startDate" onclick="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:'readOnly'})"   />-<label>
+                <input type="text" name="endDate" class="form-control"  onclick="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:'readOnly'})"    />
+            </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+            </div>
+        </form>
+    </div>
+    <div id="statictable">
+    </div>
+    <div id="datalist" class="datalist">
+
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript">
+    $(function(){
+        // $("#queryBtn").click(queryStart);
+        queryStart();
+    });
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+
+    function deleteLock(lockNum)
+    {
+        confirmLayer({msg:"确定要删除？",yesFn:function(){
+                loadJsonData({url:"delete?lockNum="+lockNum,complete:function(resultData){
+                        if(resultData.code)
+                        {
+                            queryStart();
+                        }
+                        alertLayer(resultData.msg);
+                    }});
+            }});
+        return false;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <div id="activity" >
+        <!-- 显示操作信息 -->
+        <div id="promptMsg"></div>
+        <div class="form-panel">
+            <form id="form" name="form"  method="post"  class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-xs-3 text-right required" th:text="#{i18n.code}+':'">编码:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="codeType" placeholder="编码" class="form-control" th:value="${model?.codeType}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-3 text-right required" th:text="#{i18n.text}+':'">字典名称:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="codeName" placeholder="字典名称" class="form-control" th:value="${model?.codeName}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-3 text-right required" th:text="#{i18n.value}+':'">字典值:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="codeValue" placeholder="字典值" class="form-control" th:value="${model?.codeValue}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-3 text-right"  th:text="'EN'+ #{i18n.text}+':'">字典英文名称:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="codeNameEn" placeholder="字典英文名称" class="form-control" th:value="${model?.codeNameEn}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-3 text-right"  th:text="'CN'+ #{i18n.text}+':'">字典中文名称:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="codeNameCn" placeholder="字典中文名称" class="form-control" th:value="${model?.codeNameCn}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-3 text-right"   th:text=" #{i18n.sortWeights}+':'">排序权重:</label>
+                    <div class="col-xs-9">
+                        <input type="text"  name="indexs" placeholder="排序权重" class="form-control numText" th:value="${model?.indexs}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-offset-3  col-xs-9 text-center">
+                        <input type="hidden" name="codeId" th:value="${model?.codeId}" />
+                            <div secure:hasPermission="sys:dict:add" th:if="${model == null}">
+                                <input type="button" class="btn btn-primary" onclick="loadData('add')" id="addBtn" value="保存" th:value="#{i18n.add('')}" />
+                            </div>
+                        <div th:unless="${model == null }" secure:hasPermission="sys:dict:edit">
+                                <input type="button" class="btn btn-primary" onclick="loadData('edit')" id="updateBtn" value="保存" th:value="#{i18n.save('')}" />
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <th:block th:replace="fragments/headTag ::copy "></th:block>
+    <script type="text/javascript">
+
+
+        function loadData(url){
+
+            var requiredvalue=true;
+            $("input.requiredvalue,select.requiredvalue").each(function(){
+                if($(this).val()=="")
+                {
+                    var msgObj=$(this);
+                    TipsLayer({msg: msgObj.attr("placeholder")+" 不能为空", obj: msgObj});
+                    requiredvalue=false;
+                    return false;
+                }
+            });
+            if(requiredvalue)
+            {
+                loadJsonData({
+                    url : url,
+                    complete : function(data){
+                        if(data.code == 1){
+                            data["isIframe"]=true;
+                            showJsonData(data);
+                            parent.closeWindow(parent.openwindowLastIndex);
+                        }else{
+                            showJsonData(data);
+                        }
+                    },
+                    data :$("#form").serialize()
+                });
+            }
+        }
+    </script>
+</body>
+</html>

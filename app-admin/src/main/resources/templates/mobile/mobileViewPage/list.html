@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block></head>
+<body>
+<div class="page-inner">
+    <div class="card">
+        <div class="card-header">
+            <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                <input type="hidden" name="pageSize" value="20" >
+
+                <div class="form-group">
+                    <label th:text="#{mobile.mobileViewPage.name}">名称</label>
+                    <input type="text" class="form-control" name="name" >
+                </div>
+                <div class="form-group">
+                    <label th:text="#{mobile.mobileViewPage.viewType}">视图类型</label>
+                    <input type="text" class="form-control" name="viewType" >
+                </div>
+
+                <div class="form-group">
+                    <label th:text="#{mobile.mobileViewPage.status}">状态:1有效，0无效</label>
+                    <input type="text" class="form-control" name="status" >
+                </div>
+
+                <div>
+                    <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                    <input type="button" secure:hasPermission="mobile:mobileViewPage:add" class="btn btn-primary" id="addBtn" th:value="#{i18n.add('')}" />
+                </div>
+
+            </form>
+
+        </div>
+        <div class="card-body table-responsive" id="datalist"></div></div><th:block th:replace="fragments/headTag2 ::script "></th:block>
+    <script type="text/javascript" th:inline="javascript">
+        $(function(){
+            $("#queryBtn").click(queryStart);
+            $("#addBtn").click(function () {
+                openWindow({
+                    title:/*[[#{i18n.add('')}]]*/"",
+                    url:"add",
+                    complete:function (resData){
+                        loadData();
+                    }
+                });
+            });        queryStart();
+        });
+        function loadData()
+        {
+            loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+        }
+        function queryStart()
+        {
+            toPage(1);
+            return false;
+        }
+
+        function toPage(pageIndex)
+        {
+            $("#pageIndex").val(pageIndex);
+            loadData();
+        }
+    </script>
+</body>
+</html>

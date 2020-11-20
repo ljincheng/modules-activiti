@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" >
+<head th:fragment="style" th:remove="tag">
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <script th:src="@{/res/lib/atlantislite/js/plugin/webfont/webfont.min.js}"></script>
+    <script>
+        WebFont.load({
+            google: {"families":["Lato:300,400,700,900"]},
+            custom: {"families":["Flaticon", "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ['../../res/lib/atlantislite/css/fonts.min.css']},
+            active: function() {
+                sessionStorage.fonts = true;
+            }
+        });
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" th:href="@{/res/lib/atlantislite/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/res/lib/atlantislite/css/atlantis.min.css}">
+    <!-- Select2 -->
+    <link th:href="@{/res/lib/atlantislite/js/plugin/select2/select2.min.css}" rel="stylesheet" />
+    <link th:href="@{/res/lib/atlantislite/js/plugin/select2/select2-bootstrap.min.css}" rel="stylesheet" />
+
+</head>
+<body th:fragment="script" th:remove="tag">
+
+    <!--   Core JS Files   -->
+    <script th:src="@{/res/lib/atlantislite/js/core/jquery.3.2.1.min.js}"></script>
+    <script th:src="@{/res/lib/atlantislite/js/core/popper.min.js}"></script>
+    <script th:src="@{/res/lib/atlantislite/js/core/bootstrap.min.js}"></script>
+
+    <!-- jQuery UI -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js}"></script>
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js}"></script>
+
+    <!-- jQuery Scrollbar -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js}"></script>
+
+
+    <!-- Chart JS -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/chart.js/chart.min.js}"></script>
+
+    <!-- jQuery Sparkline -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jquery.sparkline/jquery.sparkline.min.js}"></script>
+
+    <!-- Chart Circle -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/chart-circle/circles.min.js}"></script>
+
+    <!-- Datatables -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/datatables/datatables.min.js}"></script>
+
+    <!-- Bootstrap Notify -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/bootstrap-notify/bootstrap-notify.min.js}"></script>
+
+    <!-- jQuery Vector Maps -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jqvmap/jquery.vmap.min.js}"></script>
+    <script th:src="@{/res/lib/atlantislite/js/plugin/jqvmap/maps/jquery.vmap.world.js}"></script>
+
+    <!-- Sweet Alert -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/sweetalert/sweetalert.min.js}"></script>
+
+   <!-- Select2 -->
+    <script th:src="@{/res/lib/atlantislite/js/plugin/select2/select2.full.min.js}"></script>
+    <!-- Atlantis JS -->
+    <script th:src="@{/res/lib/atlantislite/js/atlantis.min.js}"></script>
+    <!-- Atlantis JS -->
+
+
+
+    <script type="text/javascript" th:src="@{/res/js/jqPaginator.min.js}"></script>
+    <script type="text/javascript" th:src="@{/res/lib/layer/layer.js}"></script>
+    <script th:src="@{/res/js/jquery.tools.js}"></script>
+</body>
+</html>

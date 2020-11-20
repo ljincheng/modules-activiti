@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<a onclick="openReviewLayer(-1)">回复</a>
+<div id="reviewLayer">
+
+</div>
+<div style="display: none;" th:each="modelObj,status: ${pagedata?.page}">
+<div class="comment">
+    <a href="###" class="avatar">
+        <i class="icon-user icon-2x"></i>
+    </a>
+    <div class="content">
+        <div class="pull-right text-muted" th:text="${#dates.format(modelObj?.createTime,'yyyy-MM-dd HH:mm')}">2 个小时前</div>
+        <div><a ><strong th:text="${modelObj?.user?.realName}">Catouse</strong></a> </div>
+        <div class="text" th:text="${modelObj?.content}">...</div>
+        <div class="actions" th:inline="javascript">
+            <a href="##" th:onclick="openReviewLayer([[${modelObj?.id}]])" th:text="#{i18n.review}">回复</a>
+            <a href="##" th:onclick="delReview([[${modelObj?.id}]])" th:text="#{i18n.delete}">删除</a>
+        </div>
+    </div>
+    <div class="comments-list" th:each="modelObj2,status2:${modelObj?.childReviewList}" >
+        <div class="comment">
+            <a href="###" class="avatar">
+                <i class="icon-user icon-2x"></i>
+            </a>
+            <div class="content">
+                <div class="pull-right text-muted"  th:text="${#dates.format(modelObj2?.createTime,'yyyy-MM-dd HH:mm')}">2 个小时前</div>
+                <div><a href="###"><strong th:text="${modelObj2?.user?.realName}">Catouse</strong></a> <span class="text-muted">回复</span> <a href="###" th:text="${modelObj?.user?.realName}">张士超</a></div>
+                <div class="text" th:text="${modelObj2?.content}">...</div>
+                <div class="actions">
+                    <a href="##" th:onclick="openReviewLayer([[${modelObj2?.id}]])" th:text="#{i18n.review}">回复</a>
+                    <a href="##"  th:onclick="delReview([[${modelObj2?.id}]])" th:text="#{i18n.delete}">删除</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript" th:inline="javascript">
+
+    function commentHtml(data,pdata)
+    {
+        var html="";
+        html+="<a href=\"###\" class=\"avatar\"><i class=\"icon-user icon-2x\"></i></a>";
+        html+="<div class=\"content\"><div class=\"pull-right text-muted\">"+data.createTime+"</div>";
+        html+="<div><a ><strong>"+data.user.realName+"</strong></a> ";
+        if(pdata!=null)
+        {
+            html+="<span class=\"text-muted\">[(#{i18n.review})]</span><a href=\"###\">"+pdata.user.realName+"</a>";
+        }
+        html+="</div>";
+        html+="<div class=\"text\">"+data.content+"</div>";
+        html+="<div class=\"actions\" ><a href=\"##\" onclick=\"openReviewLayer("+data.id+")\" >[(#{i18n.review})]</a>";
+        html+="<a href=\"##\"  onclick=\"delReview("+data.id+")\" >[(#{i18n.delete})]</a>";
+        html+="</div></div>";
+        return html;
+    }
+    function commentListHtml(datalist,pdata) {
+        var html="";
+        if(datalist!=null && datalist.length>0)
+        {
+
+            for(var i=0,k=datalist.length;i<k;i++)
+            {
+                var data=datalist[i];
+                html+="<div class=\"comment\">";
+                html+=commentHtml(data,pdata);
+                if(data.childReviewList!=null && data.childReviewList.length>0)
+                {
+                    var listHtml=commentListHtml(data.childReviewList,data);
+                    if(listHtml!="")
+                    {
+                        html+="<div class=\"comments-list\">"+listHtml+"</div>";
+                    }
+                }
+                html+="</div>";
+            }
+        }
+        return html;
+    }
+    function loadReviewData()
+    {
+        loadJsonData({
+            url : "datalist",
+            data : {
+                "subjectId" : [[${subjectId}]],
+                "pageIndex" : 1
+            },
+            complete:function(resObj)
+            {
+               // alert(JSON.stringify(resObj));
+                if(resObj.code==1)
+                {
+                    if(resObj.data && resObj.data.page)
+                    {
+                       var html= commentListHtml(resObj.data.page,null);
+                      // alert(html);
+                       $("#reviewLayer").html(html);
+                    }
+
+                }else{
+                    alert(resObj.msg);
+                }
+
+            }
+        });
+    }
+    function openReviewLayer(reviewId) {
+        promptLayer({
+            title : /*[[#{i18n.text}]]*/ "请输入内容",
+            formType:3,
+            isRequired:false,
+            yesBt: /*[[#{i18n.ok}]]*/ "确定",
+            noBt: /*[[#{i18n.no}]]*/ "取消",
+            yesFn : function(value, index) {
+                $.ajaxSettings.async = false; //设置ajax同步
+                loadJsonData({
+                    url : "add",
+                    data : {
+                        "reviewId":reviewId,
+                        "subjectId" : [[${subjectId}]],
+                        "content" : value
+                    },
+                    complete:function(resObj)
+                    {
+                        // alert(resObj.msg);
+                        if(resObj.code==1)
+                        {
+                            closeWindow(index);
+                            window.location.reload();
+                        }else{
+                            alert(resObj.msg);
+                        }
+
+                    }
+                });
+               // $.ajaxSettings.async = true;//设置ajax异步
+
+            }
+        });
+    }
+
+    function delReview(id)
+    {
+        loadJsonData({
+            url : "delete",
+            data : {
+                "id":id
+            },
+            complete:function(resObj)
+            {
+                if(resObj.code==1)
+                {
+                    window.location.reload();
+                }else{
+                    alert(resObj.msg);
+                }
+
+            }
+        });
+    }
+
+    $(function(){
+        loadReviewData();
+    });
+
+</script>
+</body>
+</html>

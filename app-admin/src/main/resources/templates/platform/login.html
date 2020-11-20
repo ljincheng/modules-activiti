@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>系统登录</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" media="screen" href="res/lib/login/css/loginstyle.css">
+    <link rel="stylesheet" type="text/css" href="res/lib/login/css/reset.css" />
+    <style type="text/css">
+
+        div.errerMsg img{
+            vertical-align: middle;
+            margin-right:10px;
+            width:32px;
+            height: 32px;
+        }
+        div.errerMsg{
+            text-align: left;
+            color: #d81e06;
+            margin-bottom: 10px;
+            font-size: 13px;
+            padding: 0 40px;
+            vertical-align: middle;
+            height: 50px;
+            width: 100%;
+        }
+
+        div.systemtitle{
+            text-align: center;
+            font-size: 18px;
+            margin-top: 40px;
+            padding: 0px 10px;
+            vertical-align: middle;
+        }
+        .btn{
+            border: 1px;
+        }
+        .btn:focus{
+            outline: none;
+        }
+
+    </style>
+</head>
+<body>
+<div id="particles-js">
+    <div class="login">
+        <div class="systemtitle" th:text="${osName}" >
+           系统标题
+        </div>
+        <div class="login-top" th:text="#{i18n.login}">
+            登录
+        </div>
+        <div class="errerMsg" th:if=" ${not #strings.isEmpty(message_login)}">
+            <img src="res/lib/login/img/errorMsg.png"><span th:text="${messages_login}"></span>
+        </div>
+        <form onsubmit="return getResult()" >
+            <div class="login-center clearfix">
+                <div class="login-center-img"><img src="res/lib/login/img/name.png" /></div>
+                <div class="login-center-input">
+                    <input type="text"  id="username" value="" placeholder="请输入您的用户名" th:placeholder="#{sys.profile.loginId.placeholder}" autofocus="autofocus"   />
+                    <div class="login-center-input-text" th:text="#{sys.profile.loginId}">用户名</div>
+                </div>
+            </div>
+            <div class="login-center clearfix">
+                <div class="login-center-img"><img src="res/lib/login/img/password.png" /></div>
+                <div class="login-center-input">
+                    <input type="password"  id="password" value="" placeholder="请输入您的密码" th:placeholder="#{sys.profile.password.placeholder}"   />
+                    <div class="login-center-input-text" th:text="#{sys.profile.password}">密码</div>
+                </div>
+            </div>
+            <div class="login-center clearfix">
+                <div class="login-center-img"><img src="res/lib/login/img/code.png" /></div>
+                <div class="login-center-input">
+                    <input type="text"  id="verifyCode" value="" placeholder="请输入验证码" th:placeholder="#{i18n.captcha.placeholder}"  />
+                    <img id="verifyCodeImage"
+                         onclick="reloadVerifyCode()" src="captcha"
+                         style="cursor: pointer;height: 25px; position: relative; top:-26px; left: 150px; z-index: 999;" title="点击重新成生验证码" />
+                    <div class="login-center-input-text" th:text="#{i18n.captcha}">验证码</div>
+                </div>
+            </div>
+            <div style="text-align: center">
+                <input type="submit" value="登录" th:value="#{i18n.login}" class="btn login-button">
+            </div>
+
+        </form>
+    </div>
+    <div class="sk-rotating-plane"></div>
+</div>
+<form id="formlogin" method="post" th:action="@{/login}" >
+    <input type="hidden" name="username" id="_userName">
+    <input type="hidden" name="password" id="_password">
+    <input type="hidden" name="verifyCode" id="_verifyCode">
+</form>
+<input type="text" id="crTxt">
+<script src="res/lib/login/js/particles.min.js"></script>
+<script src="res/lib/login/js/app.js"></script>
+<script type="text/javascript" src="res/lib/cryptojs/aes.js"></script>
+<script type="text/javascript" src="res/lib/cryptojs/pbkdf2.js"></script>
+<script type="text/javascript" src="res/lib/cryptojs/AesUtil.js"></script>
+<script type="text/javascript" src="res/lib/cryptojs/common.js"></script>
+
+<script type="text/javascript">
+    function hasClass(elem, cls) {
+        cls = cls || '';
+        if (cls.replace(/\s/g, '').length == 0) return false; //当cls没有参数时，返回false
+        return new RegExp(' ' + cls + ' ').test(' ' + elem.className + ' ');
+    }
+
+    function addClass(ele, cls) {
+        if (!hasClass(ele, cls)) {
+            ele.className = ele.className == '' ? cls : ele.className + ' ' + cls;
+        }
+    }
+
+    function removeClass(ele, cls) {
+        if (hasClass(ele, cls)) {
+            var newClass = ' ' + ele.className.replace(/[\t\r\n]/g, '') + ' ';
+            while (newClass.indexOf(' ' + cls + ' ') >= 0) {
+                newClass = newClass.replace(' ' + cls + ' ', ' ');
+            }
+            ele.className = newClass.replace(/^\s+|\s+$/g, '');
+        }
+    }
+    // document.querySelector(".login-button").onclick = function(){
+    // addClass(document.querySelector(".login"), "active")
+    // setTimeout(function(){
+    //     addClass(document.querySelector(".sk-rotating-plane"), "active")
+    //     document.querySelector(".login").style.display = "none"
+    // },800)
+    // getResult();
+    // setTimeout(function(){
+    //     removeClass(document.querySelector(".login"), "active")
+    //     removeClass(document.querySelector(".sk-rotating-plane"), "active")
+    //     document.querySelector(".login").style.display = "block"
+    //     alert("登录成功")
+    //
+    // },5000)
+    // }
+</script>
+<script type="text/javascript">
+    if(self != top) {
+        top.location.href=window.location.href;
+    }
+    function reloadVerifyCode(){
+        var today=new Date();
+        document.getElementById('verifyCodeImage').src='captcha?12'+today.getSeconds();
+    }
+    function printErrorMsg(msg)
+    {
+        document.querySelector(".errerMsg").innerHTML='<img src="res/lib/login/img/errorMsg.png">'+msg;
+    }
+    function relogin()
+    {
+        if( window.STARTLOGIN)
+        {
+            clearTimeout( window.STARTLOGIN);
+            window.STARTLOGIN=null;
+        }
+        removeClass(document.querySelector(".login"), "active")
+        removeClass(document.querySelector(".sk-rotating-plane"), "active")
+        document.querySelector(".login").style.display = "block"
+
+    }
+    function getResult(){
+        addClass(document.querySelector(".login"), "active")
+        window.STARTLOGIN= setTimeout(function(){
+            addClass(document.querySelector(".sk-rotating-plane"), "active")
+            document.querySelector(".login").style.display = "none"
+        },800);
+        //待加密字符串
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        var verifyCode = document.getElementById("verifyCode").value;
+        if(verifyCode=="")
+        {
+            printErrorMsg("请输入验证码")
+            relogin();
+            return  false;
+        }
+        if(username=="")
+        {
+            printErrorMsg("请输入您的用户名")
+            relogin();
+            return false;
+        }
+        if(password=="")
+        {
+            printErrorMsg("请输入您的密码")
+            relogin();
+            return false;
+        }
+        document.getElementById("_userName").value=encryptString(username,verifyCode);
+        document.getElementById("_password").value=encryptString(password,verifyCode);
+        document.getElementById("_verifyCode").value=verifyCode;
+        DL=verifyCode;
+        document.getElementById("formlogin").submit();
+        return false;
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="alertContent"></div>
+
+<div   id="promptMsg"></div>
+<div class="container-fluid">
+    <div class="k_container k_container_bg_color">
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                    <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                    <input type="hidden" name="pageSize" value="20" >
+                    <input type="hidden" name="parentId" value="0" id="parentId" >
+                    <div class="form-group">
+                        <label for="userName" th:text="#{sys.profile.loginId}+':'">用户名:</label>
+                        <input type="text" id="userName" name="userName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="realName" th:text="#{sys.profile.nickName}+':'">姓名:</label>
+                        <input type="text" id="realName" name="realName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="telphone" th:text="#{i18n.telphone}+':'">手机号:</label>
+                        <input type="text" id="telphone" name="telphone" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate" th:text="#{i18n.createTime}+':'">注册时间：</label>
+                        <input id="startDate" class="form-control" type="text" name="startDate" onclick="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:'readOnly'})" value="" th:value="${#dates.format(startDate,'yyyy-MM-dd')}"  />-<input type="text" name="endDate" class="form-control"  onclick="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:'readOnly'})" th:value="${#dates.format(endDate,'yyyy-MM-dd')}" value=""  />
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                        <a secure:hasPermission="system_user_add" class="btn btn-primary" href="add"  data-toggle="modal" th:text="#{i18n.add(#{sys.profile.accounts})}" >添加</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+        <div class="panel panel-default mt10">
+            <div class="panel-body" id="datalist" >
+
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $("#queryBtn").click(queryStart);
+        queryStart();
+    });
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+    function editUser()
+    {
+        //loadTableData({url:"addUser.do",data:$("#form_editUser").serialize(),id:"editUserPage"})
+        loadJsonData({url:"add",data:$("#form_editUser").serialize(),id:"editUserPage",complete:function(data){
+                window.alertLayer(data.msg,{id:"alertContent",icon:data.code});
+                $("#triggerModal").modal('hide');
+                loadData();
+            }});
+    }
+
+    function addUserRoleList(userId)
+    {
+        $("#alertContent").html("");
+        var roleListStr="";
+        $("input[name='rolelist']:checked").each(function(){
+
+// 		    if ("checked" == $(this).attr("checked")) {
+            roleListStr+=","+ $(this).attr('value') ;
+// 		 		 alert($(this).attr('value'));
+// 		    }
+        });
+
+        if(roleListStr!="")
+        {
+            roleListStr=(roleListStr.substring(1));
+        }
+        loadJsonData({url:"modifyUserRoles",data:{roleListStr:roleListStr,userId:userId},complete:function(data){
+                window.alertLayer(data.msg,{id:"alertContent",icon:data.code});
+
+            }});
+// 		    alert(roleListStr);
+    }
+    function lockUser(userId,lock)
+    {
+
+        loadJsonData({url:"modifyUserLock",data:{isLock:lock==1?true:false,userId:userId},complete:function(data){
+                window.alertLayer(data.msg,{id:"alertContent",icon:data.code});
+                loadData();
+            }});
+
+    }
+    function delUser(userId,status)
+    {
+
+        loadJsonData({url:"status",data:{userId:userId,status:(status==1?0:1)},complete:function(data){
+                window.alertLayer(data.msg,{id:"alertContent",icon:data.code});
+                loadData();
+            }});
+
+    }
+
+    function resetPassword(userId) {
+        promptLayer({
+            title : /*[[#{sys.profile.password.placeholder}]]*/ "请输入重置后的密码",
+            formType:3,
+            isRequired:false,
+            yesBt: /*[[#{i18n.ok}]]*/ "确定",
+            yesBt: /*[[#{i18n.no}]]*/ "取消",
+            yesFn : function(value, index) {
+                $.ajaxSettings.async = false; //设置ajax同步
+                loadJsonData({
+                    url : "resetPassword",
+                    complete : showJsonData,
+                    data : {
+                        "userId" : userId,
+                        "password" : value
+                    }
+                });
+                loadData();
+                $.ajaxSettings.async = true;//设置ajax异步
+                closeWindow(index);
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

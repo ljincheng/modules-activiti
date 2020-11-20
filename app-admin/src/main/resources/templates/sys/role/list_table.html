@@ -1,0 +1,55 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <table class="table table-hover" >
+        <thead>
+        <tr >
+            <th style="width:60px; min-width: 60px;" th:text="#{i18n.serial}">序号</th>
+            <th th:text="#{i18n.name(#{sys.role})}">名称</th>
+            <th th:text="#{i18n.status}">是否生效</th>
+            <th th:text="#{i18n.createTime}">创建时间</th>
+            <th th:text="#{i18n.actions}">操作</th>
+        </tr>
+        </thead>
+        <tbody  >
+
+        <tr th:each="modelObj,status: ${pagedata.page}">
+            <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+            <td th:text="${modelObj.name}"></td>
+            <td >
+                <th:block th:if="${modelObj.available==1}"><span class="label label-success">[[#{i18n.open('')}]]</span></th:block>
+                <th:block th:unless="${modelObj.available==1}"><span class="label label-warning">[[#{i18n.close('')}]]</span></th:block>
+            </td>
+            <td th:text="${#dates.format(modelObj.createTime,'yyyy-MM-dd HH:mm:ss')}"> </td>
+
+
+            <td >
+                <div class="dropdown">
+                    <a class="btn-link dropdown-toggle" data-toggle="dropdown"><th:block th:text="#{i18n.actions}" /> <span
+                            class="caret"></span></a>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li shiro:hasPermission="sys:role:setting"><a  th:onclick="openWindow({url:'permissionMap?roleId=[(${modelObj.id})]',title:'[(#{i18n.settings(#{i18n.permission})})]'});"  class="btn-link" th:text="#{i18n.permission}">权限</a></li>
+                        <li shiro:hasPermission="sys:role:userlist">
+                            <a th:onclick="openWindow({url:'../user/roleUserList?roleId=[(${modelObj.id})]',title:'角色用户',width:900});"  class="btn-link" th:text="#{sys.profile.accounts}">用户</a>
+                        </li>
+                        <li shiro:hasPermission="system_role_edit"><a class="btn-link"  data-toggle="modal" th:href="@{edit(id=${modelObj.id })}" th:text="#{i18n.edit}">编辑</a></li>
+                        <li shiro:hasPermission="system_role_delete" ><a class="btn-link" th:onclick="delRole([[${modelObj.id}]],[[${modelObj.name}]])" th:text="#{i18n.delete}">删除</a></li>
+
+
+                    </ul>
+                </div>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+
+    <ul class="pager" id="pager">
+    </ul>
+    <script type="text/javascript" th:inline="javascript">
+        <!--
+        $(function(){
+            jqPager({id:"pager",firstBt:/*[[#{sys.page.first}]]*/"首页",preBt:/*[[#{sys.page.previous}]]*/"上一页",nextBt:/*[[#{sys.page.next}]]*/"下一页",lastBt:/*[[#{sys.page.last}]]*/"末页",totalPages:[[${pagedata.totalPage}]],pageIndex:[[${pagedata.pageIndex}]],change:toPage});
+        });
+        //-->
+    </script>
+</div>

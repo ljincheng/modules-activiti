@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="icon" href="../res/lib/atlantislite/img/icon.ico" type="image/x-icon"/>
+
+    <!-- Fonts and icons -->
+    <script src="../res/lib/atlantislite/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+        WebFont.load({
+            google: {"families":["Lato:300,400,700,900"]},
+            custom: {"families":["Flaticon", "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ['../res/lib/atlantislite/css/fonts.min.css']},
+            active: function() {
+                sessionStorage.fonts = true;
+            }
+        });
+
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../res/lib/atlantislite/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../res/lib/atlantislite/css/atlantis.min.css">
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="../res/lib/atlantislite/css/demo.css">
+
+    <style type="text/css">
+        .fullFrame {
+            position: absolute;
+            top: 0; left: 0;
+            width:100%;
+            height:100%;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="main-header">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="blue">
+
+            <a   class="logo">
+                <img src="../res/images/platform/logo.png" style="width:80%;" alt="navbar brand" class="navbar-brand">
+            </a>
+            <button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon">
+						<i class="icon-menu"></i>
+					</span>
+            </button>
+            <button class="topbar-toggler more"><i class="icon-options-vertical"></i></button>
+            <div class="nav-toggle">
+                <button class="btn btn-toggle toggle-sidebar">
+                    <i class="icon-menu"></i>
+                </button>
+            </div>
+        </div>
+        <!-- End Logo Header -->
+
+        <!-- Navbar Header -->
+        <nav class="navbar navbar-header navbar-expand-lg" data-background-color="blue2">
+
+            <div class="container-fluid">
+
+                <div class="collapse" id="search-nav">
+                    <form class="navbar-left navbar-form nav-search mr-md-3" method="post" th:action="@{/es/query}" target="query_frame" onsubmit="return siteQueryFun()">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <button type="submit" class="btn btn-search pr-1">
+                                    <i class="fa fa-search search-icon"></i>
+                                </button>
+                            </div>
+                            <input type="text" placeholder="Search ..." class="form-control" name="k" id="siteQueryKey">
+                        </div>
+                    </form>
+                </div>
+
+
+                <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
+
+                    <li class="nav-item toggle-nav-search hidden-caret">
+                        <a class="nav-link" data-toggle="collapse" href="#search-nav" role="button" aria-expanded="false" aria-controls="search-nav">
+                            <i class="fa fa-search"></i>
+                        </a>
+                    </li>
+
+                    <li class="nav-item  hidden-caret" onclick="toggleActiveContent()">
+                        <button type="button" class="changeLogoHeaderColor" data-color="green"></button>
+                    </li>
+                    <li class="nav-item dropdown hidden-caret">
+                        <a class="nav-link dropdown-toggle" href="#" id="messageDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+                            <img src="/res/lib/atlantislite/img/flags/zh.png" th:src="@{/res/lib/atlantislite/img/flags/{lang}.png(lang=${#strings.toLowerCase(#locale.country)})}">
+                        </a>
+                        <ul class="dropdown-menu messages-notif-box animated fadeIn" aria-labelledby="messageDropdown">
+                            <li><a class="see-all" href="?lang=zh_CN" ><img th:src="@{/res/lib/atlantislite/img/flags/cn.png}"><th:block  th:text="#{i18n.lang.cn}"></th:block></a>
+                            </li>
+                            <li><a class="see-all" href="?lang=en_US" ><img th:src="@{/res/lib/atlantislite/img/flags/us.png}"><th:block  th:text="#{i18n.lang.us}"></th:block></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown hidden-caret">
+                        <a class="nav-link dropdown-toggle"  target="main_frame" href="../reminds/myRemindPersonalList.do" id="notifDropdown" role="button"   aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-bell"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown hidden-caret">
+                        <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+                            <i class="fas fa-layer-group"></i>
+                        </a>
+                        <div class="dropdown-menu quick-actions quick-actions-info animated fadeIn">
+                            <div class="quick-actions-header">
+                                <span class="title mb-1" th:text="#{i18n.system.manage}">系统管理</span>
+                                <span class="subtitle op-8">点击切换系统</span>
+                            </div>
+                            <div class="quick-actions-scroll scrollbar-outer">
+                                <div class="quick-actions-items">
+                                    <div class="row m-0">
+                                        <a class="col-6 col-md-4 p-0" href="main.do?pid=1">
+                                            <div class="quick-actions-item">
+                                                <i class="flaticon-pen"></i>
+                                                <span class="text">留学生管理</span>
+                                            </div>
+                                        </a>
+                                        <a class="col-6 col-md-4 p-0" href="main.do?pid=2">
+                                            <div class="quick-actions-item">
+                                                <i class="flaticon-file-1"></i>
+                                                <span class="text">官网管理</span>
+                                            </div>
+                                        </a>
+                                        <a class="col-6 col-md-4 p-0" href="main.do?pid=3">
+                                            <div class="quick-actions-item">
+                                                <i class="flaticon-database"></i>
+                                                <span class="text">招生管理</span>
+                                            </div>
+                                        </a>
+
+                                        <a class="col-6 col-md-4 p-0" href="main.do?pid=4">
+                                            <div class="quick-actions-item">
+                                                <i class="flaticon-interface-1"></i>
+                                                <span class="text">APP管理</span>
+                                            </div>
+                                        </a>
+                                        <a class="col-6 col-md-4 p-0" href="main.do?pid=5">
+                                            <div class="quick-actions-item">
+                                                <i class="flaticon-file"></i>
+                                                <span class="text">数据管理</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown hidden-caret">
+                        <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
+                            <div class="avatar-sm">
+                                <img src="../res/lib/atlantislite/img/profile.jpg"  th:src="${sysAccountPhoto}"   alt="..." class="avatar-img rounded-circle">
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user animated fadeIn">
+                            <div class="dropdown-user-scroll scrollbar-outer">
+                                <li>
+                                    <div class="user-box">
+                                        <div class="avatar-lg"><img   src="../res/lib/atlantislite/img/profile.jpg"  th:src="${sysAccountPhoto}"  class="avatar-img rounded" /></div>
+                                        <div class="u-text">
+                                            <h4 th:text="${user.realName}"></h4>
+                                            <p class="text-muted" th:text="${user.email}"></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item"  target="main_frame" href="resetUserPhoto" th:text="#{sys.profile.picture.edit}">修改头像</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item"  target="main_frame" href="resetPassword" th:text="#{sys.profile.password.change}">修改密码</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item"  href="logout" th:text="#{i18n.logout}">安全退出</a>
+                                </li>
+                            </div>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- End Navbar -->
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar sidebar-style-2">
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+            <div class="sidebar-content">
+                <ul class="nav nav-primary" th:utext="${menuHtml}">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- End Sidebar -->
+
+    <div class="main-panel" >
+        <div id="playFrameParent" class="content-activity frameMainDiv"  style="z-index:1;">
+            <iframe width="100%" height="100%" frameborder="0" id="playerFrame" class="fullFrame"></iframe>
+        </div>
+        <div id="myDefMainFrame" class="content-activity frameMainDiv" style="z-index:2;"><iframe id="main_frame" name="main_frame" frameborder="0" width="100%" class="fullFrame"  src="../sys/info"></iframe></div>
+        <div id="queryFrameParent" class="content-activity frameMainDiv"  style="z-index:0;">
+            <iframe width="100%" height="100%" frameborder="0" id="query_frame" name="query_frame" class="fullFrame"></iframe>
+        </div>
+    </div>
+
+
+</div>
+<!--   Core JS Files   -->
+<script src="../res/lib/atlantislite/js/core/jquery.3.2.1.min.js"></script>
+<script src="../res/lib/atlantislite/js/core/popper.min.js"></script>
+<script src="../res/lib/atlantislite/js/core/bootstrap.min.js"></script>
+
+<!-- jQuery UI -->
+<script src="../res/lib/atlantislite/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+<script src="../res/lib/atlantislite/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js"></script>
+
+<!-- jQuery Scrollbar -->
+<script src="../res/lib/atlantislite/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+
+
+<!-- Chart JS -->
+<script src="../res/lib/atlantislite/js/plugin/chart.js/chart.min.js"></script>
+
+<!-- jQuery Sparkline -->
+<script src="../res/lib/atlantislite/js/plugin/jquery.sparkline/jquery.sparkline.min.js"></script>
+
+<!-- Chart Circle -->
+<script src="../res/lib/atlantislite/js/plugin/chart-circle/circles.min.js"></script>
+
+<!-- Datatables -->
+<script src="../res/lib/atlantislite/js/plugin/datatables/datatables.min.js"></script>
+
+<!-- Bootstrap Notify -->
+<script src="../res/lib/atlantislite/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+
+
+<!-- Sweet Alert -->
+<script src="../res/lib/atlantislite/js/plugin/sweetalert/sweetalert.min.js"></script>
+
+<!-- Atlantis JS -->
+<script src="../res/lib/atlantislite/js/atlantis.min.js"></script>
+<script type="text/javascript">
+    var toggle_customSidebar = false,custom_full=false,
+        custom_open = 0;
+    $(function () {
+        // var WIN_H = $(window).height();
+        // var HEAER_HEIGHT=62;
+        // var frame_h=WIN_H - HEAER_HEIGHT - 3;
+        // $("#main_frame").css("height",frame_h+"px");
+        // $("#main_frame").css("marginTop",HEAER_HEIGHT+"px");
+
+
+        $("li.menu_link_item").bind("click",function(){
+            activeContent("myDefMainFrame");
+            var aitem=$(this);
+            $("li.menu_link_item").each(function(){
+                var myEl=$(this);
+
+                if(myEl.hasClass("active"))
+                {
+                    myEl.removeClass("active");
+                }
+                var pMyEl=myEl.parent().parents('li.active');
+                pMyEl.removeClass("active");
+            });
+            aitem.addClass("active");
+            aitem.parent().parents('li.submenu').addClass("active");
+        });
+    });
+
+function loadPlayer(url) {
+$("#playerFrame").attr("src",url);
+    activeContent("playFrameParent");
+}
+function toggleActiveContent() {
+    if($("#playFrameParent").hasClass("active")){
+        activeContent("myDefMainFrame");
+    }else{
+        activeContent("playFrameParent");
+    }
+}
+function activeContent(frameId){
+
+        if (!$("#"+frameId).hasClass("active")) {
+            $("#"+frameId).addClass("active");
+        }
+        $("div.frameMainDiv").each(function (){
+            var item=$(this);
+            if(item.attr("id") != frameId){
+                if (item.hasClass("active")) {
+                    item.removeClass("active");
+                }
+            }
+        });
+
+}
+
+function siteQueryFun() {
+  //  $("#query_frame").attr("src","/es/query?k="+$("siteQueryKey").val());
+    activeContent("queryFrameParent");
+    return true;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+  port: 8080
+  connection-timeout: 5000ms
+  servlet:
+    context-path: /apps
+    session:
+      cookie:
+        http-only: true
+
+spring:
+  # 环境 dev|test|prod
+ # profiles:
+ #   active: dev
+  messages:
+    encoding: UTF-8
+    basename: i18n/messages
+  application:
+    name: "App admin"
+  # web
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  thymeleaf:
+    cache: false
+#    prefix: classpath:/templates/
+    suffix: .html
+    # 数据库
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/codework?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+    username: dev
+    password: dev123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    # druid
+    druid:
+      initialSize: 1
+      filters: stat
+      maxActive: 2
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+
+booktable:
+  redisGroup: test
+  shiro:
+    globalSessionTimeout: 6000000
+    cookieName: token
+  sys:
+    passwordKey: O12sd!@(Y8OL
+    attachmentRoot: /usr/local/workspace/temp/webapps/uploads/
+    avatarHost: http://localhost:8080/avatar
+    avatarSavePath: file:///usr/local/workspace/temp/webapps/avatar/
+
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+
+elasticsearch:
+  servicePath: http://localhost:9200
+
+
+
+mybatis:
+  type-aliases-package: cn.booktable.modules.entity # 实体类包的路径
+  configuration:
+    map-underscore-to-camel-case: true # 将下划线转为驼峰命名
+    default-fetch-size: 100
+    default-statement-timeout: 3000
+  mapper-locations: classpath*:/mapper/**/*.xml # mapper xml配置文件文件路径
+# 打印sql
+logging:
+  level:
+    cn.booktable.modules.dao : debug
+
+
+
+
+

@@ -1,0 +1,373 @@
+@charset "UTF-8";
+body{
+	color:#555555;
+}
+
+.pointer{
+	cursor: pointer;
+}
+.k-aside {
+  
+}
+
+.k-aside-black{
+	background-color: #242939;
+ }
+ 
+.k-aside-white{
+background-color:#ffffff;
+}
+
+.k-aside--fixed {
+   position: fixed;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   z-index: 98; 
+    width: 119px;
+}
+
+.k-aside--2fixed {
+   position: fixed;
+   top: 0px;
+   height:50px;
+   right: 0;
+   left:119px;
+   z-index: 98; 
+   border-bottom: 1px solid #e4e4e4;
+   width:100%;
+   box-shadow:  0px 3px 2px #e4e4e4;
+   border-radius:0px !important;
+   
+}
+
+.k-aside_brand{
+	height: 110px; 
+	width: 119px;
+	overflow: hidden;
+}
+
+.k-aside--fixed .k-aside--mtop{
+	margin-top:20px;
+}
+.k-aside--3fixed .k-aside--mtop{
+	margin-top: 100px;
+}
+
+.k-aside--3fixed {
+   position: fixed;
+   top: 0px;
+   bottom: 0;
+   left:119px;
+   z-index: 98; 
+   width: 189px;
+   min-width: 149px;
+}
+ 
+.k-wrapper{
+    padding-left: 318px;
+    padding-top: 50px;
+}
+
+.k-aside .k-aside-menu {
+    margin: 15px 0;
+}
+.k-aside-menu {
+    background-color: #242939;
+}
+
+.k-scroll {
+    position: relative;
+    overflow: hidden;
+}
+.k-aside-menu .k-menu__nav {
+    margin: 0;
+    list-style: none;
+    padding: 15px 0;
+}
+
+.k-panel-gray{
+	background-color: gray;
+}
+
+.table-none-border{
+	border: 0px;
+}
+
+.table-none-border tr td{
+/* 	text-align: right; */
+	border: 0px;
+}
+.table-none-border tr th{
+	text-align: left;
+	border: 0px;
+}
+.k-navbar-topmenu>li>a{
+	padding-top: 15px !important;
+padding-bottom: 15px !important;
+}
+
+.k-nav-2levelmenu>li>a,.k-nav-2levelmenu>li>b {
+	padding: 8px 30px;
+}
+
+.k-btn-pd{
+	margin-left: 15px;
+}
+
+.btn{
+	border-color: #dce1e3 ;
+	font-size:12px !important;
+}
+
+.table td, .table th{
+	
+	border-bottom-color: #e1e1e1 !important;
+	border-bottom: 1px solid #e1e1e1;
+}
+
+.k_table_last_none_border  tr:last-child th{
+	border-bottom: 0px;
+}
+
+.panel-body {
+    padding: 12px;
+}
+.panel-body h4.title{
+	margin-left: 20px;
+}
+
+
+
+.breadcrumb {
+   margin-bottom: 0px;
+}
+
+.breadcrumb > li{
+	font-size: 14px;
+	font-weight:400;
+	color: #555555 !important;
+}
+
+.table>thead>tr>th {
+    background-color: #ffffff;
+}
+
+.header-dividing, .page-header {
+     padding-bottom: 0px;
+    margin: 10px 0 10px;
+     border-bottom: 0px solid #e5e5e5; 
+}
+
+.panel {
+  margin-bottom: 0px;
+  border:0px;
+}
+
+.panel_transparent{
+	background-color: transparent;
+	box-shadow: 0 0px 0px rgba(0,0,0,.05);
+}
+
+.k_container{
+	padding:10px;
+	border-radius:8px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.k_container_bg_color{
+	background-color: #f2f2f6;
+	
+}
+
+.k_table_bg_color{
+	background-color: #ffffff;
+	
+}
+
+table.k_last_not_border tr:last-child td,table.k_last_not_border tbody tr:last-child td{
+	border-bottom: 0px solid #e1e1e1;
+}
+
+.k_table_none_border, .k_table_none_border td {
+	border: 0px;
+}
+
+.k_btn{
+	background-color:transparent;
+}
+.k_btn.active{
+	background-color:transparent;
+	color:#3d94ff;
+	border: 1px solid #3d94ff;
+/* 	    background-color: #3d94ff; */
+/* 	    color:#ffffff; */
+	    text-shadow:none;
+	    box-shadow:inset 0 0px 0px rgba(0,0,0,.15);
+}
+.k_btn.active:hover{
+	color:#3d94ff;
+}
+
+.k_btn:hover{
+	color:#3d94ff;
+}
+
+.k_btn_line{
+	background-color: transparent;
+}
+
+.k_btn_blue{
+	color: #3d94ff;
+	border: 1px solid #3d94ff;
+}
+
+.k_panel_margin{
+	margin-left: 80px;
+}
+
+.k_panel_padding{
+	padding: 25px 20px;
+}
+ 
+.pager {
+   margin: 20px 20px;
+}
+
+.noShadow{
+	box-shadow:none !important;
+
+}
+
+.bg_white{
+	background-color: #ffffff;
+}
+
+.card {
+	border: 0;
+	border-radius: .1875rem;
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	margin-bottom: 20px;
+}
+
+.card .card-header{
+	border-bottom: 1px solid #e4e4e4;
+	padding: 10px 10px 10px 30px;
+}
+
+
+
+.layui-layer-loading  .layui-layer-content{
+	width: 100px !important;
+	height: 100px !important;
+	background: transparent !important;
+}
+
+.layui-layer-loading  .layui-layer-content {
+	border-radius: 50% !important;
+}
+.layui-layer-loading .layui-layer-loading0 {
+	display: block;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 100px;
+	height: 100px;
+	margin-top: -50px;
+	margin-left: -50px;
+	border: 5px solid transparent;
+	border-top-color: #ff6400;
+	border-radius: 50%;
+	z-index: 1001;
+	-webkit-animation: spin 0.5s infinite linear;
+	animation: spin 0.5s infinite linear
+}
+
+.layui-layer-loading .layui-layer-loading0:before,.layui-layer-loading .layui-layer-loading0:after {
+	content: '';
+	position: absolute;
+	border-radius: 50%
+}
+
+.layui-layer-loading .layui-layer-loading0 {
+	display: block;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 100px;
+	height: 100px;
+	margin-top: -50px;
+	margin-left: -50px;
+	border: 4px solid transparent;
+	border-top-color: #ff6400;
+	border-radius: 50%;
+	z-index: 1001;
+	-webkit-animation: spin 2s infinite linear;
+	animation: spin 2s infinite linear
+}
+
+.layui-layer-loading .layui-layer-loading0:before,.layui-layer-loading .layui-layer-loading0:after {
+	content: '';
+	position: absolute;
+	border-radius: 50%
+}
+
+.layui-layer-loading .layui-layer-loading0:before {
+	top: 5px;
+	left: 5px;
+	right: 5px;
+	bottom: 5px;
+	border: 4px solid transparent;
+	border-top-color: #088cdc;
+	-webkit-animation: spin 1.5s infinite linear;
+	animation: spin 1.5s infinite linear
+}
+
+.layui-layer-loading .layui-layer-loading0:after {
+	top: 15px;
+	left: 15px;
+	right: 15px;
+	bottom: 15px;
+	border: 4px solid transparent;
+	border-top-color: #52bf81;
+	-webkit-animation: spin 1s infinite linear;
+	animation: spin 1s infinite linear
+}
+
+.table-compact td, .table-compact th {
+	padding: 4px !important;
+	line-height: 10px !important;
+	vertical-align: middle !important;
+}
+
+@-webkit-keyframes spin {
+	0% {
+		-webkit-transform: rotate(0);
+		transform: rotate(0)
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg)
+	}
+}
+
+@keyframes spin {
+	0% {
+		-webkit-transform: rotate(0);
+		transform: rotate(0)
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg)
+	}
+}
+
+
+.imageIcon{
+	max-width: 120px;
+	max-height: 120px;
+}

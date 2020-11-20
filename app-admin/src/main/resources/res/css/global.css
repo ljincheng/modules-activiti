@@ -1,0 +1,51 @@
+.form-inline .form-group{
+    margin-bottom: 15px !important;
+    margin-right:20px !important;
+}    
+.form-inline .btn-group{
+    margin-bottom: 15px !important;
+}
+.col-md-3{
+    width: auto !important;
+}
+.datalist {
+    
+}
+.datalist th{
+    min-width:80px !important;
+    max-width: 140px !important;
+    white-space:nowrap;
+    text-align: center;
+}
+
+.datalist td {
+	width:auto;
+	min-width:80px !important;
+	max-width: 140px !important;
+    text-overflow : ellipsis; 
+    white-space : nowrap; 
+    word-wrap:break-word;
+    text-align: center;
+    overflow: hidden;
+}
+.datatable-span.flexarea{
+    overflow: scroll !important;
+}
+
+.datatable{
+	margin-bottom:0px  !important;
+}
+
+.datalist tr td:nth-last-child(1) {
+    overflow: inherit ;
+}
+
+.tableBottom{
+	width:100%;
+	margin-bottom:150px !important;
+	}
+
+.thumbnailBtn{
+    max-width:100px;
+    max-height: 100px;
+}

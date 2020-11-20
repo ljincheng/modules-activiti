@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+
+<style type="text/css">
+    .iframeclass {
+        position: absolute;
+        top: 0; left: 0;
+        width:100%;
+        height:100%;
+    }
+    body {
+        height:100%;
+    }
+</style>
+</head>
+<body>
+<iframe class="iframeclass" frameborder="0px" th:src="${kidsMediaMetadataDo?.mediaUrl}"></iframe>
+
+</body>
+</html>
+

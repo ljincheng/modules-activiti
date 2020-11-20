@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<div id="promptMsg"></div>
+<div class="container-fluid">
+    <div class="k_container k_container_bg_color">
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form id="form" name="form" method="post" class="form-inline">
+                    <div class="row">
+                        <div class="form-group  col-md-3">
+                            <label th:text="#{i18n.code}+':'">编码:</label>
+                            <input type="text"  name="codeType" class="form-control" />
+                        </div>
+                        <div class="form-group  col-md-3">
+                            <label th:text="#{i18n.text}+':'">文字:</label>
+                            <input type="text"  name="codeName" class="form-control" />
+                        </div>
+                        <div class="form-group  col-md-3">
+                            <label th:text="#{i18n.value}+':'">值:</label>
+                            <input type="text"  name="codeValue" class="form-control" />
+                        </div>
+                        <div class="form-group  col-md-3">
+                            <input type="hidden" id="pageIndex" name="pageIndex" />
+                            <secure:hasPermission name="system_dict_list">
+                                <input type="button" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}"/>
+                            </secure:hasPermission>
+                            <secure:hasPermission name="system_dict_add">
+                                <input type="button" class="btn btn-primary" id="addBtn" value="新增" th:value="#{i18n.add(#{sys.dict})}"/>
+                            </secure:hasPermission>
+                            <secure:hasPermission name="system_dict_cache">
+                                <input type="button" class="btn btn-primary" id="cacheBtn" value="更新缓存"  th:value="#{i18n.update(#{i18n.cache})}"/>
+                            </secure:hasPermission>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-default mt10">
+            <div class="panel-body datalist" id="datalist" >
+
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript">
+    $(function() {
+        //查询
+        $("#queryBtn").click(queryStart);
+
+        $("#addBtn").click(function(){
+            preShow("");
+        });
+
+        $("#cacheBtn").click(function(){
+            confirmLayer({
+                msg : "是否确认更新字典缓存?",
+                yesFn : function(index) {
+                    $.ajaxSettings.async = false; //设置ajax同步
+                    loadJsonData({
+                        url : "updateCache.do",
+                        complete : showJsonData,
+                    });
+                    $.ajaxSettings.async = true;//设置ajax异步
+                    closeWindow(index);
+                }
+            });
+        });
+
+        queryStart();
+    });
+
+    //查询
+    function queryStart() {
+        toPage(1);
+    }
+
+    //翻页
+    function toPage(pageIndex) {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+
+    //加载数据
+    function loadData() {
+        loadTableData({
+            id : "datalist",
+            url : "list",
+            data : $("#form").serialize()
+        });
+    }
+
+    function preShow(codeId){
+        openWindow({
+            title:codeId==""?"新增数据字典":"修改数据字典",
+            url:"preShow?codeId="+codeId,
+            width:600,
+            height:350,
+            complete:function (resData){
+                loadData();
+            }
+        });
+    }
+
+
+    function deleteData(codeId,codeType) {
+        confirmLayer({
+            msg : "是否确认删除?",
+            yesFn : function(index) {
+                $.ajaxSettings.async = false; //设置ajax同步
+                loadJsonData({
+                    url : "delete",
+                    complete : showJsonData,
+                    data : {
+                        "codeId" : codeId,
+                        "codeType":codeType
+                    }
+                });
+                loadData();
+                $.ajaxSettings.async = true;//设置ajax异步
+                closeWindow(index);
+            }
+        });
+    }
+</script>
+</body>
+</html>

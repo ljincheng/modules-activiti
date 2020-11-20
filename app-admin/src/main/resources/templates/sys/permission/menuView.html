@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+        .menuFolder{color:#4c4c4c;}
+        .menuLink{color:#4c4c4c;}
+        .menuCode{color:#888888;}
+    </style>
+</head>
+<body>
+<div id="activity">
+    <div id="datalist"  style="height: 100%;  position: absolute;left:100px; top:10px;">
+        <ul class="tree tree-lines  " id="myTree"></ul>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript">
+    window.TREEDATA=null;
+    $(function(){
+        loadJsonData({url:"menuData",complete:function(treeData){
+                window.TREEDATA=treeData;
+                var myTree = $('#myTree').tree({data:window.TREEDATA, itemCreator: function($li, item) {
+                        var icon='';
+                        var cssClass='';
+                        var objcOpts=$.extend({icon:null,id:null,dataType:0,url:''},item);
+                        if(objcOpts.icon!=null && objcOpts.icon!='')
+                        {
+                            icon='<i class="'+item.icon+'"  ></i>&nbsp;';
+                        }
+                        if(item.dataType==1)
+                        {
+                            cssClass='menuLink';
+                        }else if(item.dataType==2)
+                        {
+                            icon='<i class="fa fa-code"  ></i>&nbsp;';
+                            cssClass='menuCode';
+                        }else if(item.dataType==3)
+                        {
+                            cssClass='menuFolder';
+                        }
+
+                        $li.append($('<a/>',{'href': item.url,'class':cssClass}).html(icon+item.title));
+
+                    }});
+            }});
+        var winW=$(window).width()-251;
+        var winH=$(window).height();
+        $("#datalist").css("height",winH+"px");
+    });
+    function reloadTreeData()
+    {
+        loadJsonData({url:"menuData",complete:function(treeData){
+                window.TREEDATA=treeData;
+                var myTree = $('#myTree').data('zui.tree');
+                myTree.reload(window.TREEDATA);
+            }});
+    }
+    function menuUrl(id)
+    {
+        openWindow({url:"editTree?parentId="+id, width:780,height:450,title:"菜单 / 权限编辑",close:function(index){
+                reloadTreeData();
+            }});
+    }
+</script>
+</body>
+</html>

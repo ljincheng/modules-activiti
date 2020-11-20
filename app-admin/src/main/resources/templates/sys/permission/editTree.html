@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="activity">
+    <div class="form-panel">
+        <form id="form_1" name="form"  method="post"  class="form-horizontal">
+            <input type="hidden" id="permissionId" name="id" th:value="${sysPermission?.id}">
+            <input type="hidden" name="parentId" th:value="${parentId}">
+            <div class="form-group form-inline">
+                <label for="permissionName" class="monospaced_lg">名称:</label>
+                <input type="text" id="permissionName" name="name" class="form-control w400" th:value="${sysPermission?.name }" />
+            </div>
+
+            <div class="form-group form-inline">
+                <label   class="monospaced_lg">类型：</label>
+                <select class="form-control" name="dataType">
+                    <option value="1"  th:selected="${sysPermission?.dataType==1}"   >菜单</option>
+                    <option value="3" th:selected="${sysPermission?.dataType==3}"  >菜单目录</option>
+                    <option value="2" th:selected="${sysPermission?.dataType==2}"  >代码</option>
+                </select>
+            </div>
+
+            <div class="form-group form-inline">
+                <label for="permissionUrl"  class="monospaced_lg">菜单链接地址:</label>
+                <input type="text" class="form-control w400" id="permissionUrl" name="url" th:value="${sysPermission?.url }"  />
+            </div>
+
+            <div class="form-group form-inline">
+                <label for="permissionCode"  class="monospaced_lg">权限代码:</label>
+                <input type="text" class="form-control w400" id="permissionCode" name="perCode" th:value="${sysPermission?.perCode }"  />
+            </div>
+
+            <div class="form-group form-inline">
+                <label for="permissionIcon"  class="monospaced_lg">图标:</label>
+                <input type="text" class="form-control w400" id="permissionIcon" name="icon" th:value="${sysPermission?.icon }"  />
+            </div>
+
+            <div class="form-group form-inline">
+                <label for="permissionIndexs"  class="monospaced_lg">排序:</label>
+                <input type="text" class="numText form-control w400" id="permissionIndexs" name="indexs" th:value="${sysPermission?.indexs }"  />
+            </div>
+
+            <div class="form-group form-inline">
+                <label for="permissionIndexs"  class="monospaced_lg">&nbsp;</label>
+                <input secure:hasPermission="sys:permission:add" type="button" class="btn btn-primary" id="addBtn" value="新增" onclick="submitFn('addTree')" />
+                <input  secure:hasPermission="sys:permission:edit" th:if="${parentId!=null && parentId!=0}" type="button" class="btn btn-primary" id="modifyBtn" value="修改" onclick="submitFn('editTree')"/>
+                <input secure:hasPermission="sys:permission:delete" th:if="${parentId!=null && parentId!=0}" type="button" class="btn  btn-primary" id="deleteBtn" value="删除" onclick="deleteFn()" />
+            </div>
+        </form>
+    </div>
+    <div id="statictable">
+    </div>
+
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript">
+    function submitFn(url)
+    {
+        $("#form_1").attr("action",url);
+        $("#form_1").submit();
+    }
+    function deleteFn()
+    {
+
+        confirmLayer({msg:"确定删除",yesFn:function(){
+                loadJsonData({url:"delete?id="+$("#permissionId").val(),complete:function(dataresult){
+                        if(dataresult.code==1)
+                        {
+                            parent.closeWindow();
+                        }else{
+                            alertLayer(dataResult.msg);
+                        }
+                    }});
+            }})
+    }
+</script>
+</body>
+</html>

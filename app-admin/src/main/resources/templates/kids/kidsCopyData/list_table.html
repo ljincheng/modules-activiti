@@ -1,0 +1,41 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+    <table class="table table-hover" >
+        <thead>
+        <tr>
+            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+			<th th:text="#{kids.kidsCopyData.tableName}">表名</th>
+			<th th:text="#{kids.kidsCopyData.content}">内容</th>
+			<th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="modelObj,status: ${pagedata.page}">
+            <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+			<td th:text="${modelObj?.tableName}">表名</td>
+			<td th:text="${modelObj?.content}">内容</td>
+
+            <td>
+	            <div class="dropdown">
+	                <a class="btn-link dropdown-toggle" data-toggle="dropdown" ><th:block th:text="#{i18n.actions}" /></a>
+	                <ul class="dropdown-menu pull-right dropdown-menu-right" role="menu">
+	                    <li class="dropdown-item" shiro:hasPermission="kids:kids_copy_data:edit"   th:onclick="editFun('edit/[[${modelObj.id}]]')" ><a class="btn-link" th:text="#{i18n.edit}">修改</a></li>
+	                    <li class="dropdown-item" shiro:hasPermission="kids:kids_copy_data:delete" th:onclick="deleteFun({'id':'[[${modelObj.id}]]'})"  ><a class="btn-link"  th:text="#{i18n.delete}" >删除</a></li>
+	                </ul>
+	            </div>
+           </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+
+    <nav aria-label="Page navigation"><ul class="pager pagination"></ul></nav>
+    <script type="text/javascript" th:inline="javascript">
+        <!--
+        $(function(){
+            jqPager({firstBt:/*[[#{sys.page.first}]]*/"首页",preBt:/*[[#{sys.page.previous}]]*/"上一页",nextBt:/*[[#{sys.page.next}]]*/"下一页",lastBt:/*[[#{sys.page.last}]]*/"末页",totalPages:[[${pagedata.totalPage}]],pageIndex:[[${pagedata.pageIndex}]],totalNum:[[${pagedata.totalNum}]],change:toPage});
+        });
+        //-->
+    </script>
+</div>

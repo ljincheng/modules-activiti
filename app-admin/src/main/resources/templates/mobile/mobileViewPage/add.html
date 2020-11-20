@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="alert alert-warning" role="alert" th:if="${error !=null }" th:text="${error.message}">
+
+</div>
+
+<div class="form-panel">
+    <form id="form_1" name="form" method="post" class="form-horizontal">
+
+        <div class="form-group">
+            <label class="col-sm-2 text-right required" th:text="#{mobile.mobileViewPage.name}+':'">名称:</label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text" name="name" placeholder="名称" class="form-control" th:value="${model?.name}"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 text-right required" th:text="#{mobile.mobileViewPage.viewType}+':'">视图类型:</label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text" name="viewType" placeholder="视图类型" class="form-control"
+                       th:value="${model?.viewType}"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 text-right required" th:text="#{mobile.mobileViewPage.createTime}+':'">创建时间:</label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text"  name="createTime" placeholder="创建时间" class="form-control" th:value="${model?.createTime}" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 text-right required" th:text="#{mobile.mobileViewPage.weight}+':'">显示顺序权重:</label>
+            <div class="col-md-6 col-sm-10">
+                <input type="text" name="weight" placeholder="显示顺序权重" class="form-control" th:value="${model?.weight}"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2  col-md-10 text-center">
+                <input type="hidden" name="codeId" th:value="${model?.codeId}"/>
+                <div secure:hasPermission="mobile:mobileViewPage:add" th:if="${model == null}">
+                    <input type="button" class="btn btn-primary" onclick='submitFn("add")' id="addBtn" value="保存"
+                           th:value="#{i18n.add('')}"/>
+                </div>
+                <div th:unless="${model == null }" secure:hasPermission="mobile:mobileViewPage:edit">
+                    <input type="button" class="btn btn-primary" onclick='submitFn("update")' id="updateBtn" value="保存"
+                           th:value="#{i18n.save('')}"/>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    function submitFn(url) {
+        $("#form_1").attr("action", url);
+        $("#form_1").submit();
+    }
+</script>
+</div></body>
+</html>

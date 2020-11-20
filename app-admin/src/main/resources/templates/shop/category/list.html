@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<div id="alertContent"></div>
+
+<div   id="promptMsg"></div>
+<div class="container-fluid">
+    <div class="k_container k_container_bg_color">
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                    <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                    <input type="hidden" name="pageSize" value="20" >
+                    <input type="hidden" name="parentId" value="0" id="parentId" >
+                    <div class="form-group">
+                        <label for="userName" th:text="#{shop.category}+':'">分类名称:</label>
+                        <input type="text" id="userName" name="userName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                        <a secure:hasPermission="shop:category:add" class="btn btn-primary" href="add"  data-toggle="modal" th:text="#{i18n.add(#{shop.category})}" >添加</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+        <div class="panel panel-default mt10">
+            <div class="panel-body" id="datalist" >
+
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $("#queryBtn").click(queryStart);
+        queryStart();
+    });
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"list",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+</script>
+</body>
+</html>

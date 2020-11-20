@@ -1,0 +1,71 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <div id="editUserPage">
+        <div class="form-panel">
+            <form id="form_editUser" name="form"    action="add" method="post" class="form-horizontal"  >
+
+                    <input type="hidden" name="id" th:value="${sysUser?.id}" />
+                    <div class="form-group" th:if="${#strings.isEmpty(sysUser?.userName)}">
+                        <label for="addRole_roleName" class="col-sm-2" th:text="#{sys.profile.loginId}">用户名:</label>
+                        <div class="col-sm-10">
+                            <input type="text"  id="addRole_roleName" name="userName" class="form-control"  th:value="${sysUser?.userName }" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addRole_realName" class="col-sm-2" th:text="#{sys.profile.nickName}">呢称:</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="addRole_realName" name="realName" class="form-control" th:value="${sysUser?.realName }" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addRole_telphone" class="col-sm-2" th:text="#{i18n.telphone}">手机号:</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="addRole_telphone" name="telphone" class="form-control" th:value="${sysUser?.telphone }" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addUser_password" class="col-sm-2" th:text="#{sys.profile.password}">密码:</label>
+                        <div class="col-sm-10">
+                            <input type="password" id="addUser_password" name="password" class="form-control" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addUser_password2" class="col-sm-2" th:text="#{sys.profile.password.confirm}">再次密码:</label>
+                        <div class="col-sm-10">
+                            <input type="password" id="addUser_password2" name="password2" class="form-control" value="" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addRole_motto" class="col-sm-2">座右铭:</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="addRole_motto" name="motto" class="form-control" value="" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <div class="checkbox">
+                                <label >
+                                    <input type="checkbox" name="locked" value="2" th:checked="${sysUser?.locked==2}"   /> <span th:text="#{i18n.lockin}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input type="button" class="btn btn-primary" onclick="editUser()" id="submitBtn" value="确定" th:value="#{i18n.ok}" />
+                    </div></div>
+            </form>
+        </div>
+
+
+    </div>
+    <script type="text/javascript">
+        $('#triggerModal').on('hide.zui.modal', function() {
+            queryStart();
+        })
+
+    </script>
+</div>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table>
+    <tr>
+        <th>NAME</th>
+        <th>PRICE</th>
+        <th>IN STOCK</th>
+    </tr>
+    <tr th:each="prod:${sysUserList}">
+        <td th:text="${prod.userName}">Onions</td>
+        <td th:text="${prod.realName}">2.41</td>
+    </tr>
+</table>
+
+</body>
+</html>

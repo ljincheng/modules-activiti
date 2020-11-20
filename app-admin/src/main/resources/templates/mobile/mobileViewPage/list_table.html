@@ -1,0 +1,47 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <table class="table table-hover" >
+        <thead>
+        <tr >
+            <th style="width:60px; min-width: 60px;" th:text="#{i18n.serial}"></th>
+            <th th:text="#{i18n.id}">主键</th>
+            <th th:text="#{mobile.mobileViewPage.name}">名称</th>
+            <th th:text="#{mobile.mobileViewPage.viewType}">视图类型</th>
+            <th th:text="#{i18n.weight}">显示顺序权重</th>
+            <th th:text="#{i18n.status}">状态:1有效，0无效</th>
+            <th th:text="#{i18n.modified}">最后更新时间</th>
+            <th th:text="#{i18n.actions}">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="modelObj,status: ${pagedata.page}">
+            <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+            <td th:text="${modelObj?.id}"></td>
+            <td th:text="${modelObj?.name}"></td>
+            <td th:text="${modelObj?.viewType}"></td>
+            <td th:text="${modelObj?.weight}"></td>
+            <td th:text="${modelObj?.status}"></td>
+            <td th:text="${#dates.format(modelObj?.updateTime,'yyyy-MM-dd HH:mm')}"></td>
+            <td >
+                <div class="dropdown">
+                    <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ><th:block th:text="#{i18n.actions}" /> </a>
+                    <ul class="dropdown-menu pull-right dropdown-menu-right" role="menu">
+                        <li class="dropdown-item" shiro:hasPermission="shop_category_edit"><a class="btn-link"  data-toggle="modal" th:href="@{add(id=${modelObj.id })}" th:text="#{i18n.edit}">修改</a></li>
+                        <li class="dropdown-item" shiro:hasPermission="shop_category_delete" ><a class="btn-link" th:onclick="deleteData('[[${modelObj.id}]]',[[${modelObj.status}]])" th:text="#{i18n.delete}" >删除</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation"><ul class="pager pagination"></ul></nav>
+    <script type="text/javascript" th:inline="javascript">
+        <!--
+        $(function(){
+            jqPager({firstBt:/*[[#{sys.page.first}]]*/"首页",preBt:/*[[#{sys.page.previous}]]*/"上一页",nextBt:/*[[#{sys.page.next}]]*/"下一页",lastBt:/*[[#{sys.page.last}]]*/"末页",totalPages:[[${pagedata.totalPage}]],pageIndex:[[${pagedata.pageIndex}]],change:toPage});
+        });
+        //-->
+    </script>
+</div>

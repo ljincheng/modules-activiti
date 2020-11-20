@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html  xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>修改头像</title>
+    <th:block th:replace="fragments/headTag ::copy "></th:block>
+    <link href="/res/lib/uploader/zui.uploader.min.css" th:href="@{/res/lib/uploader/zui.uploader.min.css}" rel="stylesheet" />
+    <script src="/res/lib/uploader/zui.uploader.min.js" th:href="@{/res/lib/uploader/zui.uploader.min.js}" ></script>
+
+    <style type="text/css">
+    .k-aside-black .navbar-menu li a{
+        padding: 17px 15px !important;
+        font-size:14px !important ;
+        vertical-align: middle;
+    }
+    .k-aside-black .navbar-menu li a{
+        color:#7d8092 !important;
+        border: 0px !important;
+        border-radius:0px !important;
+        cursor: pointer;
+    }
+
+    .k-aside-black .nav-primary>li.active>a,.k-aside-black .nav-primary>li.active>a:focus,.k-aside-black  .nav-primary>li.active>a:hover{
+        background-color:#242939 !important;
+    }
+    .k-aside-white .navbar-menu li a{
+        color:#666666 !important;
+        border: 0px !important;
+        border-right: 0px !important;
+        border-radius:0px !important;
+        cursor: pointer;
+    }
+    .k-aside-white .nav-primary>li.active>a, .nav-primary>li.active>a:focus, .nav-primary>li.active>a:hover{
+        background-color:#3d95ff !important;
+        color:#ffffff !important;
+    }
+    .chosen-container-single .chosen-single div {
+        padding: 13px 8px !important;
+    }
+
+    .k-navbar-title > li > a:hover {
+        color: #333;
+        background-color: transparent !important;
+    }
+
+    .file-rename-by-click{
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+    </style>
+    <script type="text/javascript">
+
+
+        $(function(){
+
+            $('#uploaderMyUserPhoto').uploader({
+                autoUpload: true,            // 当选择文件后立即自动进行上传操作
+                file_data_name:"file",
+                filters:{mime_types:[{title: 'Image File', extensions: 'jpg,jepg,png,gif'}]},
+                url: '../../sys/attachment/upload?groupType=sysuserlogo',
+                onFileUploaded:function(file,responseObject){
+                    var backRes=JSON.parse(responseObject.response);
+                    if(backRes.code == 1)
+                    {
+                        loadJsonData({url:"resetUserPhoto",data:{photo:backRes.data},complete:function(bcObj){
+                                if(bcObj.code ==1)
+                                {
+                                    $("#sysuserlogo").attr("src","../../sys/attachment/file?id="+bcObj.data);
+                                }
+
+                            }});
+                    }else{
+                        alertLayer(backRes.msg);
+                    }
+
+                }
+
+            });
+
+        });
+    </script>
+</head>
+<body>
+<div  class="container-fluid">
+    <div class="k_container k_container_bg_color">
+
+        <div class="panel panel-default">
+            <div class="panel-body" id="datalist" >
+
+                <div class="k-aside_brand-logo" id="uploaderMyUserPhoto">
+                    <a href="#">
+                        <img class="uploader-btn-browse" id="sysuserlogo" alt="Logo" src="../res/lib/atlantislite/img/profile.jpg" th:src="${sysAccountPhoto}" style="height: 70px; width: 70px; border: 2px solid rgb(255, 255, 255); border-radius:35px; background: rgb(255, 255, 255); margin-left:20px; margin-top:30px;">
+                    </a>
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+    </div></div></body></html>
+

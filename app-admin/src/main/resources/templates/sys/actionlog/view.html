@@ -1,0 +1,16 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <div id="editUserPage">
+<div>
+    <div th:text="#{i18n.mode}">mode</div>
+    <div th:text="${sysActionLog?.mode}"></div>
+    <div th:text="#{i18n.detail}">详情</div>
+    <div th:text="${sysActionLog?.detail}"></div>
+<div th:text="#{i18n.content}">内容</div>
+<div th:text="${sysActionLog?.content}"></div>
+    <div th:text="#{i18n.createTime}">时间</div>
+    <div th:text="${#dates.format(sysActionLog.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+</div>
+
+
+
+</div>

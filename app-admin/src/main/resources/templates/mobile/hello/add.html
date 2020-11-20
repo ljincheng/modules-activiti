@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="alert alert-warning" role="alert" th:if="${error !=null }" th:text="${error.message}">
+
+</div>
+
+<div class="form-panel">
+    <form id="form_add" name="form" method="post"  >
+
+         <div class="form-group">
+            <label th:text="#{mobile.hello.title}+':'">标题:</label>
+                <input type="text"  name="title" placeholder="标题" class="form-control" th:value="${helloDo?.title}" />
+        </div>        <div class="form-group">
+            <label th:text="#{mobile.hello.descs}+':'">备注:</label>
+                <input type="text"  name="descs" placeholder="备注" class="form-control" th:value="${helloDo?.descs}" />
+        </div>
+
+        <div class="form-group">
+            	                <input type="hidden" name="id" th:value="${helloDo?.id}"/>
+                
+                    <input type="button" class="btn btn-primary" th:onclick='submitFn("../edit/[[${helloDo?.id}]]")'  value="保存"
+                           th:value="#{i18n.submit}"/>
+                 
+        </div>
+
+    </form>
+</div>
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    function submitFn(url) {
+        loadJsonData({url:url,data:$("#form_add").serialize(),complete:function(resultData){
+                alertLayer(resultData.msg);
+            }});
+        // $("#form_1").submit();
+    }
+    $(function(){
+        this.window.title="success";
+    });
+</script>
+</div></body>
+</html>
+ 

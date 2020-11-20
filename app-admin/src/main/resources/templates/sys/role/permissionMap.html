@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body style="background: #ffffff;">
+<div id="activity">
+    <div class="form-panel">
+        <form id="form_1"   method="post"  action="" class="form-inline">
+            <input type="hidden" name="roleId" th:value="${roleId }" />
+            <div id="datalist" class="datalist">
+                <table  class="table table-bordered table-hover">
+                        <tr th:each="rootNode,status :${permissionNodeList}">
+                            <td style="width:40px;" th:text="${status.index+1}"></td>
+                            <td  style="width:120px;" >
+                                <input type="checkbox" th:id="${rootNode.id }" th:text="${rootNode.name }" name="permissionIds" th:value="${rootNode.id }" th:checked="${rootNode.hasPermission}">
+
+                            </td>
+                            <td style="text-align: left;" >
+                                <ul class="unstyled">
+                                    <th:block th:each="childrenNode,childrenStatus : ${rootNode?.children}">
+                                        <li  th:class="${'menu_type_'+ childrenNode?.dataType}">
+                                            <input type="checkbox" th:id="${childrenNode?.id }" th:text="${childrenNode?.name }" name="permissionIds" th:value="${childrenNode?.id }" th:checked="${childrenNode?.hasPermission}">
+
+                                                <ul class="unstyled" th:unless="${#lists.isEmpty(childrenNode.children)}">
+                                                    <th:block th:each="thirdChildrenNode,thirdChildrenStatus : ${childrenNode.children}">
+                                                        <li  th:class="${'menu_type_'+ thirdChildrenNode?.dataType}">
+                                                            <input type="checkbox" th:id="${thirdChildrenNode?.id }" th:text="${thirdChildrenNode?.name }" name="permissionIds" th:value="${thirdChildrenNode?.id }" th:checked="${thirdChildrenNode?.hasPermission}">
+                                                                <ul class="unstyled" th:unless="${#lists.isEmpty(thirdChildrenNode.children)}">
+                                                                    <th:block th:each="fourChildrenNode,fourChildrenStatus : ${thirdChildrenNode.children}" >
+                                                                        <li th:class="${'menu_type_'+ fourChildrenNode?.dataType }">
+                                                                            <input type="checkbox" th:id="${fourChildrenNode?.id }" th:text="${fourChildrenNode?.name }" name="permissionIds" th:value="${fourChildrenNode?.id }" th:checked="${fourChildrenNode?.hasPermission}">
+                                                                        </li>
+                                                                    </th:block>
+                                                                </ul>
+                                                        </li>
+                                                    </th:block>
+                                                </ul>
+                                        </li>
+                                    </th:block>
+                                </ul>
+                            </td>
+                        </tr>
+                </table>
+            </div>
+                <input secure:hasPermission="sys:role:edit" type="submit" class="btn btn-primary mt10" value="保存" th:value="#{i18n.save('')}" />
+        </form>
+    </div>
+</div>
+<th:block th:replace="fragments/headTag ::copy "></th:block>
+
+</body>
+</html>

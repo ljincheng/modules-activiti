@@ -1,0 +1,64 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <table class="table table-hover" >
+        <thead>
+        <tr >
+            <th style="width:60px; min-width: 60px;" th:text="#{i18n.serial}"></th>
+            <th th:text="#{sys.profile.loginId}">用户名</th>
+            <th th:text="#{sys.profile.nickName}">姓名</th>
+            <th th:text="#{i18n.telphone}">手机号</th>
+            <th th:text="#{i18n.lockin}">锁定状态</th>
+            <th th:text="#{i18n.status}">注销状态</th>
+            <th th:text="#{i18n.createTime}">注册时间</th>
+            <th th:text="#{i18n.actions}">操作</th>
+        </tr>
+        </thead>
+        <tbody  >
+
+        <tr th:each="modelObj,status: ${pagedata.page}">
+            <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+            <td th:text="${modelObj.userName}"></td>
+            <td th:text="${modelObj.realName}"></td>
+            <td th:text="${modelObj.telphone}"></td>
+            <td >
+                <th:block th:if="${modelObj.locked==2}"><span class="label label-warning">[[#{i18n.lockin}]]</span></th:block>
+                <th:block th:unless="${modelObj.locked==2}"><span class="label label-success">[[#{i18n.unlock}]]</span></th:block>
+            </td>
+            <td >
+                <th:block th:if="${modelObj.status==1}"><span class="label label-success">[[#{i18n.open('')}]]</span></th:block>
+                <th:block th:unless="${modelObj.status==1}"><span class="label label-warning">[[#{i18n.close('')}]]</span></th:block>
+            </td>
+            <td th:text="${#dates.format(modelObj.createTime,'yyyy-MM-dd HH:mm:ss')}"> </td>
+            <td >
+                <div class="dropdown">
+                    <a class="btn-link dropdown-toggle" data-toggle="dropdown" ><th:block th:text="#{i18n.actions}" /> <span
+                            class="caret"></span></a>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li shiro:hasPermission="system_user_edit"><a class="btn-link"  data-toggle="modal" th:href="@{add(id=${modelObj.id })}" th:text="#{i18n.edit}">修改</a></li>
+                        <li shiro:hasPermission="system_user_role_setting"><a class="btn-link"  data-toggle="modal" th:href="@{../role/userRoles(userId=${modelObj.id})}"   th:attr="data-th-title=${modelObj.userName}"  th:text="#{sys.role}">角色</a></li>
+                        <li shiro:hasPermission="system_user_password_reset"><a href="javaScript:void(0)" th:onclick="resetPassword('[[${modelObj.id}]]')" th:text="#{sys.profile.password.reset}">重置密码</a></li>
+                        <li shiro:hasPermission="system_user_lock">
+                            <a class="btn-link" th:onclick="'lockUser(\''+${modelObj.id}+'\',\''+${modelObj.locked}+'\')'" th:text="${modelObj.locked==2}?#{i18n.unlock}:#{i18n.lockin}">
+                            </a></li>
+
+                        <li shiro:hasPermission="system_user_delete" ><a class="btn-link" th:onclick="delUser('[[${modelObj.id}]]',[[${modelObj.status}]])" th:text="${modelObj.status==1}?#{i18n.close('')}:#{i18n.open('')}" >注销</a></li>
+
+
+                    </ul>
+                </div>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+
+    <ul class="pager" id="pager">
+    </ul>
+    <script type="text/javascript" th:inline="javascript">
+        <!--
+        $(function(){
+            jqPager({id:"pager",firstBt:/*[[#{sys.page.first}]]*/"首页",preBt:/*[[#{sys.page.previous}]]*/"上一页",nextBt:/*[[#{sys.page.next}]]*/"下一页",lastBt:/*[[#{sys.page.last}]]*/"末页",totalPages:[[${pagedata.totalPage}]],pageIndex:[[${pagedata.pageIndex}]],change:toPage});
+        });
+        //-->
+    </script>
+</div>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body class="bg-white" >
+<div >
+        <table   class="table table-hover" >
+            <thead>
+            <tr>
+                <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                <th th:text="#{kids.kidsMediaMetadata.imageUrl}">图片地址</th>
+                <th th:text="#{kids.kidsMediaMetadata.title}">名称</th>
+                <th th:text="#{kids.kidsMediaMetadata.updateTime}">更新时间</th>
+                <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="modelObj,status: ${pagedata?.page}">
+                <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+                <td ><div style="height: 90px; width: 160px"><img th:onclick="play('[[${modelObj?.id}]]')" class="img-fluid" th:src="${modelObj?.imageUrl}"></div></td>
+                <td th:text="${modelObj?.title}">名称</td>
+                <td th:text="${modelObj?.updateTime}">更新时间</td>
+
+            </tr>
+
+            </tbody>
+        </table>
+
+    <th:block th:replace="fragments/headTag2 ::script "></th:block>
+
+
+</div>
+</body>
+</html>

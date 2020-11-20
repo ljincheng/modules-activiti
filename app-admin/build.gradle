@@ -1,0 +1,38 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
+}
+
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation "cn.booktable:thymeleaf-shiro:${booktableVersion}"
+    implementation "cn.booktable:modules-elasticsearch:${booktableVersion}"
+    implementation "cn.booktable:booktable-common:${booktableVersion}"
+    implementation "cn.booktable:booktable-core:${booktableVersion}"
+    implementation "cn.booktable:modules-sys-impl:${booktableVersion}"
+    implementation "cn.booktable:modules-mobile-impl:${booktableVersion}"
+    implementation "cn.booktable:modules-shop-impl:${booktableVersion}"
+    implementation "cn.booktable:modules-kids-impl:${booktableVersion}"
+
+    implementation "org.apache.shiro:shiro-core:${shiroVersion}"
+    implementation "org.apache.shiro:shiro-spring:${shiroVersion}"
+    implementation 'com.alibaba:druid-spring-boot-starter:1.2.3'
+
+
+    runtimeOnly 'mysql:mysql-connector-java'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+
+
