@@ -4,7 +4,8 @@ plugins {
     id 'java'
 }
 
-
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -24,6 +25,8 @@ dependencies {
     implementation "org.apache.shiro:shiro-spring:${shiroVersion}"
     implementation 'com.alibaba:druid-spring-boot-starter:1.2.3'
 
+//    implementation "org.activiti:activiti-spring-boot-starter:7.1.0.M2"
+    compile project(":modules-activiti");
 
     runtimeOnly 'mysql:mysql-connector-java'
 }

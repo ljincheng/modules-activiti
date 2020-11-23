@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">[[#{i18n.all}]]
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+
+
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+    <div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+            <div class="card">
+                <div class="card-header">
+
+
+
+                </div>
+
+                <div class="card-body table-responsive" id="datalist">
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th th:text="#{shop.category}">类别</th>
+                            <th th:text="#{i18n.name}">名称</th>
+                            <th >Key</th>
+                            <th >id</th>
+                            <th >DeploymentId</th>
+                            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${pagedata?.page}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td ><div style="height: 90px; width: 160px"><img th:onclick="viewImage('[[${modelObj?.id}]]')" class="img-fluid" src="imageProcess?id=[[${modelObj?.key}]]" ></div></td>
+                            <td th:text="${modelObj?.name}">名称</td>
+                            <td th:text="${modelObj?.key}">名称</td>
+                            <td th:text="${modelObj?.id}">名称</td>
+                            <td th:text="${modelObj?.deploymentId}">名称</td>
+
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+    </div>
+</div>
+<!--select2-->
+<!---->
+
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript">
+
+    function viewImage(id) {
+        window.open("imageProcess?id="+id);
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">[[#{i18n.all}]]
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+
+
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+    <div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+            <div class="card">
+                <div class="card-header">
+
+
+
+                </div>
+
+                <div class="card-body table-responsive" id="datalist">
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th >id</th>
+                            <th >name</th>
+                            <th >description</th>
+                            <th >priority</th>
+                            <th >owner</th>
+                            <th >assignee</th>
+                            <th >processInstanceId</th>
+                            <th >executionId</th>
+                            <th >processDefinitionId</th>
+                            <th >createTime</th>
+                            <th >dueDate</th>
+                            <th >category</th>
+                            <th >parentTaskId</th>
+                            <th >tenantId</th>
+                            <th >formKey</th>
+                            <th >claimTime</th>
+                            <th >taskLocalVariables</th>
+                            <th >processVariables</th>
+                            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${taskList}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td th:text="${modelObj?.id}"></td>
+                            <td th:text="${modelObj?.name}"></td>
+                            <td th:text="${modelObj?.description}"></td>
+                            <td th:text="${modelObj?.priority}"></td>
+                            <td th:text="${modelObj?.owner}"></td>
+                            <td th:text="${modelObj?.assignee}"></td>
+                            <td th:text="${modelObj?.processInstanceId}"></td>
+                            <td th:text="${modelObj?.executionId}"></td>
+                            <td th:text="${#dates.format(modelObj?.createTime,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${#dates.format(modelObj?.dueDate,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${modelObj?.category}"></td>
+                            <td th:text="${modelObj?.parentTaskId}"></td>
+                            <td th:text="${modelObj?.tenantId}"></td>
+                            <td th:text="${modelObj?.formKey}"></td>
+                            <td  th:text="${#dates.format(modelObj?.claimTime,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${modelObj?.taskLocalVariables}"></td>
+                            <td th:text="${modelObj?.processVariables}"></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+    </div>
+</div>
+<!--select2-->
+<!---->
+
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript">
+
+</script>
+
+</body>
+</html>

@@ -33,7 +33,7 @@ spring:
     suffix: .html
     # 数据库
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/codework?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://127.0.0.1:3306/codework?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
     username: dev
     password: dev123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -53,6 +53,11 @@ spring:
       testOnReturn: false
       poolPreparedStatements: true
       maxOpenPreparedStatements: 20
+  # activiti
+  activiti:
+    database-schema-update: true
+    db-history-used: true
+    history-level: full
 
 booktable:
   redisGroup: test
@@ -91,3 +96,8 @@ logging:
 
 
 
+activiti:
+  jdbcUrl: jdbc:mysql://127.0.0.1:3306/codework?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
+  jdbcDriver: com.mysql.cj.jdbc.Driver
+  jdbcUsername: dev
+  jdbcPassword: dev123

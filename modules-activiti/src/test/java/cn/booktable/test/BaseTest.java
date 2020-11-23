@@ -1,6 +1,6 @@
 package cn.booktable.test;
 
-import cn.booktable.appactiviti.config.ActivitiConfig;
+import cn.booktable.activiti.config.ActivitiConfig;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;

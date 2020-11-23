@@ -22,6 +22,7 @@ import cn.booktable.appadmin.security.UserRealm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -74,6 +75,7 @@ public class ShiroConfig {
     }
 
     @Bean("securityManager")
+    @ConditionalOnMissingBean
     public SecurityManager securityManager(@Value("${booktable.shiro.globalSessionTimeout:3600}") long globalSessionTimeout, UserCookieRealm cookieRealm, SessionManager sessionManager,@Qualifier("redisManager") RedisManager redisManager) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(cookieRealm);

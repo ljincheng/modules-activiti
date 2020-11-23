@@ -1,6 +1,6 @@
 package cn.booktable.test;
 
-import cn.booktable.appactiviti.config.ActivitiConfig;
+import cn.booktable.activiti.config.ActivitiConfig;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.ProcessEngines;
@@ -17,7 +17,7 @@ public class ActivitiTest extends BaseTest {
     @Resource
     private ActivitiConfig activitiConfig;
 
-    @Test
+   // @Test
     public void hello(){
         log.info("================ Hello word! =============");
         log.info("================activiti: url"+activitiConfig.getJdbcUrl());
@@ -30,7 +30,7 @@ public class ActivitiTest extends BaseTest {
     }
 
 
-    @Test
+   // @Test
     public void createActivitiEngine(){
 
         /*        *1.通过代码形式创建
@@ -66,7 +66,7 @@ public class ActivitiTest extends BaseTest {
     }
 
 
-    @Test
+   // @Test
     public void createActivitiEngineFromResource(){
 
         /**2. 通过加载 activiti.cfg.xml 获取 流程引擎 和自动创建数据库及表
@@ -81,7 +81,7 @@ public class ActivitiTest extends BaseTest {
 
     }
 
-    @Test
+   // @Test
     public void initActivitiEngine(){
         /**
          * 3. 通过ProcessEngines 来获取默认的流程引擎

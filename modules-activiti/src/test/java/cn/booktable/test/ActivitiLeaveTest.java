@@ -16,7 +16,7 @@ import java.util.Map;
 public class ActivitiLeaveTest extends BaseTest {
 
 
-    @Test
+   @Test
     public void deploy() {
 
         log.info("##### 第一步：{} ####","工作流部署到工作流引擎中了");
@@ -37,7 +37,7 @@ public class ActivitiLeaveTest extends BaseTest {
     }
 
 
-    @Test
+ //   @Test
     public void getprocesslists(){
 
         log.info("========== {} ==========","流程列表");
@@ -52,7 +52,7 @@ public class ActivitiLeaveTest extends BaseTest {
         }
     }
 
-    @Test
+   // @Test
     public void startPro(){
         //指定执行我们刚才部署的工作流程
         log.info("========== {} ==========","发起请假");
@@ -68,7 +68,7 @@ public class ActivitiLeaveTest extends BaseTest {
 
     public  void  showresource(){
         log.info("========== {} ==========","流程图");
-        String pdid="7501";//请假流程
+        String pdid="1";//请假流程
         ProcessEngine processEngine = getProcessEngine();
         RepositoryService rep = processEngine.getRepositoryService();
         ProcessDefinition def = rep.createProcessDefinitionQuery().processDefinitionId(pdid).singleResult();

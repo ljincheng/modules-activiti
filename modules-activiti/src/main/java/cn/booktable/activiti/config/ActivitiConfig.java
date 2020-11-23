@@ -1,9 +1,8 @@
-package cn.booktable.appactiviti.config;
+package cn.booktable.activiti.config;
 
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
 
 @ConfigurationProperties(prefix = "activiti")
 @Data
