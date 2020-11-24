@@ -24,6 +24,16 @@ public interface ActProcessService {
 
     void startProcessInstanceByKey(String processKey, Map<String, Object> variables, String businessKey);
 
+    /**
+     * 审批
+     * @param taskId
+     * @param businessKey
+     * @param comments
+     * @param userId
+     * @param variables
+     */
+    void approveInstance(String taskId, String businessKey, String comments,String userId, Map<String, Object> variables);
+
     List<ActTask> instanceList(String businessKey);
 
     List<ActTask> instanceList(String businessKey, String userName);

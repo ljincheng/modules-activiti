@@ -32,6 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/res/**").addResourceLocations(ResourceUtils.CLASSPATH_URL_PREFIX+"/res/");
+        registry.addResourceHandler("/static/**").addResourceLocations(ResourceUtils.CLASSPATH_URL_PREFIX+"/static/");
 //        registry.addResourceHandler("/avatar/**").addResourceLocations(adminSysConfig.getAvatarSavePath());
 //        registry.addResourceHandler("/views/**").addResourceLocations("classpath:/views/");
 

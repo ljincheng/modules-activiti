@@ -45,6 +45,17 @@ public class ViewUtils {
             modelAndView.addObject("msg",msg);
         }
     }
+    public static void submitFail(Object view,String msg){
+        if(view instanceof JsonView)
+        {
+            JsonView jsonView=((JsonView)view);
+            jsonView.setCode(JsonView.CODE_FAILE);
+            jsonView.setMsg(msg);
+        }else if(view instanceof ModelAndView) {
+            ModelAndView modelAndView = (ModelAndView) view;
+            modelAndView.addObject("msg",msg);
+        }
+    }
     public static void pushException(Object view, MessageSource messageSource,Exception ex)
     {
         String msg=ex.getMessage();

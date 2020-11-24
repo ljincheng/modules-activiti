@@ -1,5 +1,6 @@
 package cn.booktable.activiti.utils;
 
+import cn.booktable.activiti.entity.activiti.ActResult;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
@@ -109,4 +110,33 @@ public class ActivitiUtils {
         }
         return sameActivityImpl;
     }
+
+    public static boolean isOkResult(ActResult result){
+        if(result==null || result.getCode()==null || result.getCode().intValue()!=1)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isFailResult(ActResult result){
+        return !isOkResult(result);
+    }
+
+
+    public static void setFailResult(ActResult result,Exception ex){
+        result.setCode(0);
+        result.setMsg(ex.getMessage());
+    }
+
+    public static void setFailResult(ActResult result,String msg){
+        result.setCode(0);
+        result.setMsg(msg);
+    }
+
+    public static void setOkResult(ActResult result){
+        result.setCode(1);
+        result.setMsg("ok");
+    }
+
 }

@@ -1,0 +1,82 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <th:block th:if="${isProcess == false}">
+        <table class="table table-hover" >
+            <thead>
+            <tr>
+                <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                <th >类别</th>
+                <th >名称</th>
+                <th >KEY</th>
+                <th >id</th>
+                <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="modelObj,status: ${modelList}">
+                <td th:text="${ status.index +1}"></td>
+                <td th:text="${modelObj?.category}"></td>
+                <td th:text="${modelObj?.name}"></td>
+                <td th:text="${modelObj?.key}"></td>
+                <td th:text="${modelObj?.id}"></td>
+                <td >
+                    <div class="dropdown">
+                        <a class="btn-link dropdown-toggle" data-toggle="dropdown" ><th:block th:text="#{i18n.actions}" /></a>
+                        <ul class="dropdown-menu pull-right dropdown-menu-right" role="menu">
+
+                            <li class="dropdown-item"   th:onclick="editorModel([[${modelObj.id}]])" ><a class="btn-link"  >设计</a></li>
+                            <li class="dropdown-item"   th:onclick="deployModel([[${modelObj.id}]])" ><a class="btn-link"  >部署</a></li>
+                            <li class="dropdown-item"   th:onclick="deleteModel([[${modelObj.id}]])" ><a class="btn-link"  >删除</a></li>
+
+                        </ul>
+                    </div>
+                </td>
+
+            </tr>
+
+            </tbody>
+        </table>
+    </th:block>
+    <th:block th:if="${isProcess == true}">
+
+        <table class="table table-hover" >
+            <thead>
+            <tr>
+                <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                <th >类别</th>
+                <th >名称</th>
+                <th >KEY</th>
+                <th >id</th>
+                <th >deploymentId</th>
+                <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="modelObj,status: ${modelList}">
+                <td th:text="${ status.index +1}"></td>
+                <td th:text="${modelObj?.category}"></td>
+                <td th:text="${modelObj?.name}"></td>
+                <td th:text="${modelObj?.key}"></td>
+                <td th:text="${modelObj?.id}"></td>
+                <td th:text="${modelObj?.deploymentId}"></td>
+                <td >
+                    <div class="dropdown">
+                        <a class="btn-link dropdown-toggle" data-toggle="dropdown" ><th:block th:text="#{i18n.actions}" /></a>
+                        <ul class="dropdown-menu pull-right dropdown-menu-right" role="menu">
+
+                            <li class="dropdown-item"   th:onclick="viewImage([[${modelObj.id}]])" ><a class="btn-link"  >查看流程图</a></li>
+                            <li class="dropdown-item"   th:onclick="deleteDeploy([[${modelObj.id}]])" ><a class="btn-link"  >删除</a></li>
+
+                        </ul>
+                    </div>
+                </td>
+
+            </tr>
+
+            </tbody>
+        </table>
+
+    </th:block>
+
+</div>

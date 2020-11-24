@@ -45,7 +45,7 @@
 
                         <tr th:each="modelObj,status: ${pagedata?.page}">
                             <td th:text="${ status.index +1}"></td>
-                            <td ><div style="height: 90px; width: 160px"><img th:onclick="viewImage('[[${modelObj?.id}]]')" class="img-fluid" src="imageProcess?id=[[${modelObj?.key}]]" ></div></td>
+                            <td th:text="${modelObj?.name}"><div style="height: 90px; width: 160px"><img th:onclick="viewImage('[[${modelObj?.id}]]')" class="img-fluid" src="imageProcess?id=[[${modelObj?.key}]]" ></div></td>
                             <td th:text="${modelObj?.name}">名称</td>
                             <td th:text="${modelObj?.key}">名称</td>
                             <td th:text="${modelObj?.id}">名称</td>

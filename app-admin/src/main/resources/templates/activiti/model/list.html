@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+</head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">[[#{i18n.all}]]
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+            <a class="nav-link" data-toggle="tab" href="#deployedListTab" >已部署
+
+            </a>
+            <a class="nav-link" data-toggle="tab" href="#deployTab" th:text="#{i18n.addNew}">Add
+
+            </a>
+
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+    <div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+            <div class="card">
+                <div class="card-header">
+                    <form id="form_model_list" name="form" method="post" class="form-inline">
+                    </form>
+                </div>
+                <div class="card-body table-responsive" id="modelList">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tab-pane" id="deployedListTab">
+            <div class="card">
+                <div class="card-header">
+                    <form id="form_model_deployedlist" name="form" method="post" class="form-inline">
+                    </form>
+                </div>
+                <div class="card-body table-responsive" id="deployedModelList">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tab-pane" id="deployTab">
+            <div class="card-body table-responsive" >
+                <form id="form_add_model" method="post">
+                    <div class="form-group"><label >KEY:</label>
+                        <input type="text"  name="key" placeholder="KEY" class="form-control" />
+                    </div>
+                    <div class="form-group"><label >名称:</label>
+                    <input type="text"  name="name" placeholder="名称" class="form-control" />
+                    </div>
+                    <div class="form-group"><label >类别:</label>
+                        <input type="text"  name="category" placeholder="类别" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="button" class="btn btn-primary" th:onclick='submitForm("form_add_model","create")'  value="保存"   th:value="#{i18n.submit}"/>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+<!--select2-->
+<!---->
+
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript">
+
+    function viewImage(id) {
+        var url="image?id="+id;
+        openWindow({
+            title:/*[[#{i18n.add('')}]]*/"",
+            url:url ,
+            complete: function (resData) {
+
+            }
+        });
+    }
+
+    function deleteDeploy(id){
+        confirmLayer({
+            title:/*[[#{i18n.confirm.delete.title}]]*/"确定要删除？",
+            msg:/*[[#{i18n.confirm.delete.unrevert}]]*/"删除后数据无法恢复!",
+            noTitle:/*[[#{i18n.cancel}]]*/"取消",
+            yesTitle:/*[[#{i18n.yes}]]*/"确定", yesFn: function () {
+                loadJsonData({
+                    url: "deleteDeploy", data: {id:id}, complete: function (resultData) {
+                        alertLayer(resultData.msg);
+                        if (resultData.code) {
+                            window.location.reload();
+                        }
+
+                    }
+                });
+            }
+        });
+        return false;
+    }
+　
+    function submitForm(formId,url) {
+        loadJsonData({url:url,data:$("#"+formId).serialize(),complete:function(resultData){
+                alertLayer(resultData.msg);
+                loadData();
+            }});
+    }
+
+    function loadData() {
+        loadTableData({id: "modelList", url: "./modelTable", data: $("#form_model_list").serialize()});
+    }
+
+    function loadDeplodyedModelData() {
+        loadTableData({id: "deployedModelList", url: "./modelTable", data:{isProcess:true}});
+    }
+    function editorModel(modelId){
+        var url="../../static/modeler.html?modelId="+modelId;
+        openWindow({
+            title:/*[[#{i18n.add('')}]]*/"",
+            url:url ,
+            complete: function (resData) {
+
+            }
+        });
+    }
+    function deployModel(modelId){
+        loadJsonData({
+            url: "deploy/"+modelId,  complete: function (resultData) {
+                alertLayer(resultData.msg);
+            }
+        });
+    }
+    function deleteDeploy(id){
+        confirmLayer({
+            title:/*[[#{i18n.confirm.delete.title}]]*/"确定要删除？",
+            msg:/*[[#{i18n.confirm.delete.unrevert}]]*/"删除后数据无法恢复!",
+            noTitle:/*[[#{i18n.cancel}]]*/"取消",
+            yesTitle:/*[[#{i18n.yes}]]*/"确定", yesFn: function () {
+                loadJsonData({
+                    url: "deleteDeploy", data: {id:id}, complete: function (resultData) {
+                        alertLayer(resultData.msg);
+                        if (resultData.code) {
+                            window.location.reload();
+                        }
+
+                    }
+                });
+            }
+        });
+        return false;
+    }
+    function deleteModel(modelId){
+        confirmLayer({
+            title:/*[[#{i18n.confirm.delete.title}]]*/"确定要删除？",
+            msg:/*[[#{i18n.confirm.delete.unrevert}]]*/"删除后数据无法恢复!",
+            noTitle:/*[[#{i18n.cancel}]]*/"取消",
+            yesTitle:/*[[#{i18n.yes}]]*/"确定", yesFn: function () {
+                loadJsonData({
+                    url: "delete/"+modelId,  complete: function (resultData) {
+                        alertLayer(resultData.msg);
+                        if (resultData.code) {
+                            window.location.reload();
+                        }
+
+                    }
+                });
+            }
+        });
+        return false;
+    }
+    $(function () {
+       loadData();
+        loadDeplodyedModelData();
+    });
+</script>
+</body>
+</html>

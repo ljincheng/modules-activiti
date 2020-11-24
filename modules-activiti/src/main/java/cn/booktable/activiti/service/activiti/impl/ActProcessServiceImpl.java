@@ -12,6 +12,7 @@ import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricActivityInstanceQuery;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
@@ -195,6 +196,32 @@ public class ActProcessServiceImpl implements ActProcessService {
     @Override
     public void startProcessInstanceByKey(String processKey, Map<String, Object> variables, String businessKey) {
         runtimeService.startProcessInstanceByKey(processKey, businessKey, variables);
+    }
+
+    @Override
+    public void approveInstance(String taskId, String businessKey, String comments,String userId, Map<String, Object> variables) {
+        // 使用任务ID，查询任务对象，获取流程流程实例ID
+        Task task = taskService.createTaskQuery()//
+                .taskId(taskId)// 使用任务ID查询
+                .singleResult();
+
+        // 获取流程实例ID
+        String processInstanceId = task.getProcessInstanceId();
+        /**
+         * 注意：添加批注的时候，由于Activiti底层代码是使用： String userId =
+         * Authentication.getAuthenticatedUserId(); CommentEntity comment = new
+         * CommentEntity(); comment.setUserId(userId);
+         * 所有需要从Session中获取当前登录人，作为该任务的办理人（审核人），对应act_hi_comment表中的User_ID的字段，不过不添加审核人，该字段为null
+         * 所以要求，添加配置执行使用Authentication.setAuthenticatedUserId();添加当前任务的审核人
+         */
+        Authentication.setAuthenticatedUserId(userId);
+        taskService.addComment(taskId, processInstanceId, comments);
+
+        // 使用任务ID，完成当前人的个人任务，同时流程变量
+        taskService.complete(taskId, variables, true);
+        /**
+         * 在完成任务之后，判断流程是否结束 如果流程结束了，更新请假单表的状态从1变成2（审核中-->审核完成）
+         */
     }
 
     @Override

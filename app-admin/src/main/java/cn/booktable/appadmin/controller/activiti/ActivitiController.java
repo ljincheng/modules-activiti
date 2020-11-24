@@ -1,12 +1,20 @@
 package cn.booktable.appadmin.controller.activiti;
 
+import cn.booktable.activiti.entity.activiti.ActModel;
 import cn.booktable.activiti.entity.activiti.ActProcessBo;
+import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActTask;
+import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.service.activiti.ActProcessService;
+import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.appadmin.utils.ViewUtils;
 import cn.booktable.core.page.PageDo;
 import cn.booktable.core.view.JsonView;
+import cn.booktable.exception.BusinessException;
+import cn.booktable.util.AssertUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +42,8 @@ public class ActivitiController {
     private ActProcessService actProcessService;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private ActModelService actModelService;
 
     @GetMapping("/list")
     public ModelAndView list(){
@@ -85,11 +96,31 @@ public class ActivitiController {
 
     @GetMapping("/startProcessInstanceByKey")
     @ResponseBody
-    public String startProcessInstanceByKey(String processKey, String businessKey){
+    public String startProcessInstanceByKey(String processKey, String businessKey,String flag){
         Map<String, Object> variables=new HashMap<>();
         variables.put("applyuserid", "114");
         variables.put("remark","这是测试");
+        if(flag!=null && flag.trim().length()>0) {
+            variables.put("flag", flag);
+        }
         actProcessService.startProcessInstanceByKey(processKey,variables,businessKey);
+        return "ok";
+    }
+
+    @GetMapping("/approveInstance")
+    @ResponseBody
+    public String approveInstance(String taskId, String businessKey, String comments,String userId, String flag){
+        Map<String, Object> variables=new HashMap<>();
+        variables.put("applyuserid", "114");
+        variables.put("remark","这是测试");
+        if(flag!=null && flag.trim().length()>0) {
+            variables.put("flag", flag);
+        }
+        if(StringUtils.isBlank(userId))
+        {
+            userId="114";
+        }
+        actProcessService.approveInstance(taskId,businessKey,comments,userId,variables);
         return "ok";
     }
 
@@ -110,9 +141,22 @@ public class ActivitiController {
     public void imageProcess(String id, HttpServletRequest request, HttpServletResponse response) {
         if(StringUtils.isNoneBlank(id)) {
             //获取流程图文件流
-            InputStream in = actProcessService.findProcessImage(id);
+            InputStream in = actProcessService.findImageProcess(id);
+
+            OutputStream out = null;
             try {
                 if(in!=null) {
+//                    response.setHeader("Pragma", "no-cache");
+//                    response.setHeader("Cache-Control", "no-cache");
+//                    response.setDateHeader("Expires", 0);
+//                    response.setContentType("image/png");
+//                    out=response.getOutputStream();
+//
+//                    IOUtils.copy(in,out);
+//                    response.getOutputStream().flush();
+
+
+
                     byte[] b = new byte[1024];
                     int len;
                     while ((len = in.read(b, 0, 1024)) != -1) {
@@ -121,10 +165,16 @@ public class ActivitiController {
                     response.getOutputStream().flush();
                     response.getOutputStream().close();
                     in.close();
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally {
+                IOUtils.closeQuietly(in);
+                IOUtils.closeQuietly(out);
             }
         }
     }
+
+
 }
