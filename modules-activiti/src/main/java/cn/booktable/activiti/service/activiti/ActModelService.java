@@ -14,6 +14,8 @@ public interface ActModelService {
     public String MODEL_REVISION = "revision";
     public String MODEL_DESCRIPTION = "description";
 
+    public String MODEL_PROCESS_ID="process_id";
+
     ActResult<String> create(ActModel model);
 
     ActResult<String> save(ActModel model);

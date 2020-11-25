@@ -5,12 +5,14 @@ import cn.booktable.activiti.entity.activiti.ActProcessBo;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.repository.*;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -29,6 +31,8 @@ public class ActModelServiceImpl implements ActModelService{
 
     @Autowired
     private RepositoryService repositoryService;
+    @Autowired
+    private RuntimeService runtimeService;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -62,6 +66,7 @@ public class ActModelServiceImpl implements ActModelService{
             repositoryService.saveModel(newModel);
             repositoryService.addModelEditorSource(newModel.getId(), editorNode.toString().getBytes("utf-8"));
             ActivitiUtils.setOkResult(result);
+            result.setData(newModel.getId());
         }catch (UnsupportedEncodingException ex){
             ActivitiUtils.setFailResult(result,ex);
         }
@@ -78,8 +83,11 @@ public class ActModelServiceImpl implements ActModelService{
 
             modelJson.put(MODEL_NAME, actModel.getName());
             modelJson.put(MODEL_DESCRIPTION, actModel.getDescription());
+            modelJson.put(MODEL_PROCESS_ID, model.getKey());
             model.setMetaInfo(modelJson.toString());
-            model.setName(actModel.getName());
+            model.setVersion((model.getVersion()==null?0:model.getVersion())+1);
+          //  model.setName(actModel.getName());
+
             repositoryService.saveModel(model);
 
             repositoryService.addModelEditorSource(model.getId(), actModel.getJson().getBytes("utf-8"));
@@ -174,10 +182,17 @@ public class ActModelServiceImpl implements ActModelService{
                     modelNode = (ObjectNode) objectMapper.readTree(model.getMetaInfo());
                 } else {
                     modelNode = objectMapper.createObjectNode();
-                    modelNode.put(MODEL_NAME, model.getName());
+                    //modelNode.put(MODEL_NAME, model.getName());
                 }
+                modelNode.put(MODEL_NAME, model.getName());
                 modelNode.put(MODEL_ID, model.getId());
                 ObjectNode editorJsonNode = (ObjectNode) objectMapper.readTree(new String(repositoryService.getModelEditorSource(model.getId()), "utf-8"));
+                 JsonNode propertiesNode= editorJsonNode.get("properties");
+              if(propertiesNode!=null){
+                  ObjectNode propertiesObj=(ObjectNode)propertiesNode;
+                  propertiesObj.put(MODEL_PROCESS_ID,model.getKey());
+                  propertiesObj.put(MODEL_NAME,model.getName());
+              }
                 modelNode.put("model", editorJsonNode);
 
                 ActivitiUtils.setOkResult(result);
@@ -205,7 +220,7 @@ public class ActModelServiceImpl implements ActModelService{
             byte[] bytes = repositoryService.getModelEditorSourceExtra(modelData.getId());
 
             String processName = modelData.getName() + ".bpmn20.xml";
-            Deployment deployment = repositoryService.createDeployment().name(modelData.getName())
+            Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).key(modelData.getKey())
                     .addBytes(modelData.getName() + ".png", bytes)
                     .addString(processName, new String(bpmnBytes)).deploy();
 
@@ -263,12 +278,14 @@ public class ActModelServiceImpl implements ActModelService{
         if(list!=null) {
             for (int i = 0; i < list.size(); i++) {
                 ProcessDefinition p = list.get(i);
+              long instanceNum=  runtimeService.createProcessInstanceQuery().processDefinitionKey(p.getKey()).deploymentId(p.getDeploymentId()).count();
                 ActModel processBo = new ActModel();
                 processBo.setId(p.getId());
                 processBo.setName(p.getName());
                 processBo.setCategory(p.getCategory());
                 processBo.setDeploymentId(p.getDeploymentId());
                 processBo.setKey(p.getKey());
+                processBo.setInstanceNum(instanceNum);
                 result.add(processBo);
             }
         }

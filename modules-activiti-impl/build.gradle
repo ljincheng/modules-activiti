@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    //以下是activiti需要的
+    implementation "org.activiti:activiti-spring-boot-starter:7.1.0.M2"
+    implementation "org.activiti:activiti-image-generator:7.1.0.M2"
+    implementation "org.activiti:activiti-json-converter:7.1.0.M2"
+    implementation "org.apache.xmlgraphics:batik-all:1.10"
+
+    implementation 'org.projectlombok:lombok:1.18.16'
+    implementation "cn.booktable:booktable-common:${booktableVersion}"
+    implementation "cn.booktable:booktable-core:${booktableVersion}"
+    implementation 'mysql:mysql-connector-java:8.0.22'
+
+    compile project(":modules-activiti");
+}

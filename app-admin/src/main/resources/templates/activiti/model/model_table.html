@@ -48,6 +48,7 @@
                 <th >KEY</th>
                 <th >id</th>
                 <th >deploymentId</th>
+                <th >申请实例数</th>
                 <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
             </tr>
             </thead>
@@ -60,12 +61,14 @@
                 <td th:text="${modelObj?.key}"></td>
                 <td th:text="${modelObj?.id}"></td>
                 <td th:text="${modelObj?.deploymentId}"></td>
+                <td th:text="${modelObj?.instanceNum}"></td>
                 <td >
                     <div class="dropdown">
                         <a class="btn-link dropdown-toggle" data-toggle="dropdown" ><th:block th:text="#{i18n.actions}" /></a>
                         <ul class="dropdown-menu pull-right dropdown-menu-right" role="menu">
 
                             <li class="dropdown-item"   th:onclick="viewImage([[${modelObj.id}]])" ><a class="btn-link"  >查看流程图</a></li>
+                            <li class="dropdown-item"   th:onclick="viewInstanceList([[${modelObj.key}]],[[${modelObj.deploymentId}]])" ><a class="btn-link"  >查看申请实例</a></li>
                             <li class="dropdown-item"   th:onclick="deleteDeploy([[${modelObj.id}]])" ><a class="btn-link"  >删除</a></li>
 
                         </ul>

@@ -90,6 +90,15 @@
             }
         });
     }
+    function viewInstanceList(mkey,mdeployId) {
+        openWindow({
+            title:/*[[#{i18n.add('')}]]*/"",
+            url:"../instance/list?approvalCode="+mkey+"&deploymentId="+mdeployId ,
+            complete: function (resData) {
+
+            }
+        });
+    }
 
     function deleteDeploy(id){
         confirmLayer({

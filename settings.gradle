@@ -1,2 +1,2 @@
 rootProject.name = 'jcode'
-include 'modules-activiti', 'app-admin'
+include 'modules-activiti', 'app-admin', 'modules-activiti-impl'

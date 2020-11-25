@@ -21,4 +21,5 @@ public class ActModel {
     private Date lastUpdateTime;
     private Boolean hasEditorSource;
     private Boolean hasEditorSourceExtra;
+    private Long instanceNum;
 }

@@ -33,22 +33,22 @@
                         <thead>
                         <tr>
                             <th data-th-width="80px" th:text="#{i18n.serial}"></th>
-                            <th  >类别</th>
-                            <th >名称</th>
-                            <th >Key</th>
-                            <th >id</th>
+                            <th  >approvalCode</th>
+                            <th >approvalName</th>
+                            <th >instanceCode</th>
+                            <th >startTime</th>
                             <th >DeploymentId</th>
                             <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
                         </tr>
                         </thead>
                         <tbody>
 
-                        <tr th:each="modelObj,status: ${pagedata?.page}">
+                        <tr th:each="modelObj,status: ${instanceList}">
                             <td th:text="${ status.index +1}"></td>
-                            <td th:text="${modelObj?.category}" th:onclick="viewImage('[[${modelObj?.id}]]')" ></td>
-                            <td th:text="${modelObj?.name}"></td>
-                            <td th:text="${modelObj?.key}"></td>
-                            <td th:text="${modelObj?.id}"></td>
+                            <td th:text="${modelObj?.approvalCode}" ></td>
+                            <td th:text="${modelObj?.approvalName}"></td>
+                            <td th:text="${modelObj?.instanceCode}"></td>
+                            <td th:text="${#dates.format(modelObj?.startTime,'yyyy-MM-dd HH:mm')}"></td>
                             <td th:text="${modelObj?.deploymentId}"></td>
 
                         </tr>

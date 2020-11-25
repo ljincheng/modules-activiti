@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block>
+    <script type="text/javascript">
+        function submitApprove(){
+
+            var instanceCode=$("#instanceCode").val();
+            alert(instanceCode);
+            loadJsonData({url:"./approve/"+instanceCode,data:$("#form_instance_approve").serialize(),complete:function(resultData){
+                    alertLayer(resultData.msg);
+                }});
+        }
+    </script>
+</head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">[[#{i18n.all}]]
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+
+
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+    <div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+            <div class="card">
+<div>
+
+    <a th:text="${actInstance?.approvalName}"></a><br>
+    <a th:text="${actInstance?.instanceName}"></a>
+</div>
+                <div class="card-body table-responsive" id="datalist">
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th >id</th>
+                            <th >name</th>
+                            <th >description</th>
+                            <th >priority</th>
+                            <th >owner</th>
+                            <th >assignee</th>
+                            <th >processInstanceId</th>
+                            <th >executionId</th>
+                            <th >processDefinitionId</th>
+                            <th >createTime</th>
+                            <th >dueDate</th>
+                            <th >category</th>
+                            <th >parentTaskId</th>
+                            <th >tenantId</th>
+                            <th >formKey</th>
+                            <th >claimTime</th>
+                            <th >taskLocalVariables</th>
+                            <th >processVariables</th>
+                            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${actInstance?.taskList}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td th:text="${modelObj?.id}"></td>
+                            <td th:text="${modelObj?.name}"></td>
+                            <td th:text="${modelObj?.description}"></td>
+                            <td th:text="${modelObj?.priority}"></td>
+                            <td th:text="${modelObj?.owner}"></td>
+                            <td th:text="${modelObj?.assignee}"></td>
+                            <td th:text="${modelObj?.processInstanceId}"></td>
+                            <td th:text="${modelObj?.executionId}"></td>
+                            <td th:text="${#dates.format(modelObj?.createTime,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${#dates.format(modelObj?.dueDate,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${modelObj?.category}"></td>
+                            <td th:text="${modelObj?.parentTaskId}"></td>
+                            <td th:text="${modelObj?.tenantId}"></td>
+                            <td th:text="${modelObj?.formKey}"></td>
+                            <td  th:text="${#dates.format(modelObj?.claimTime,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${modelObj?.taskLocalVariables}"></td>
+                            <td th:text="${modelObj?.processVariables}"></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th >id</th>
+                            <th >审批意见</th>
+                            <th >审批人</th>
+                            <th >审批时间</th>
+                            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${actInstance?.commentList}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td th:text="${modelObj?.id}"></td>
+                            <td th:text="${modelObj?.comment}"></td>
+                            <td th:text="${modelObj?.userId}"></td>
+                            <td th:text="${#dates.format(modelObj?.createTime,'yyyy-MM-dd HH:mm')}"></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                    <form id="form_instance_approve">
+
+                        <input type="text" placeholder="taskId" name="taskId" id="taskId">
+                        <input type="text" placeholder="instanceCode" name="instanceCode" id="instanceCode">
+                        <input type="text" placeholder="userId" id="userId" name="userId">
+                        <input type="text" placeholder="message" id="comment" name="comment">
+                        <input type="text" placeholder="flag" id="flag" name="flag">
+                        <input type="button" value="提交审批" onclick="submitApprove()" />
+                    </form>
+
+                </div>
+                <div class="card-footer">
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+    </div>
+</div>
+<!--select2-->
+<!---->
+
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+
+<iframe th:src="@{/activiti/imageProcess?id={id}(id=${actInstance?.instanceCode})}"  style="width:100%; height: 550px; " frameborder="0" />
+</body>
+</html>

@@ -17,6 +17,7 @@ import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.image.ProcessDiagramGenerator;
 import org.slf4j.Logger;
@@ -228,8 +229,15 @@ public class ActProcessServiceImpl implements ActProcessService {
     public List<ActTask> instanceList(String businessKey) {
         List<ActTask> result=new ArrayList<>();
 
+        ProcessInstanceQuery query= runtimeService.createProcessInstanceQuery();
         // 查询流程实例
-        List<ProcessInstance> lstPis = runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).list();
+        List<ProcessInstance> lstPis =null;
+        if(businessKey==null || businessKey.trim().length()==0)
+        {
+            lstPis=query.list();
+        }else{
+            lstPis=query.processInstanceBusinessKey(businessKey).list();
+        }
         if(lstPis!=null && lstPis.size()>0) {
             // 获取流程实例的ID，这里确切的说只有一条数据，保险起见，弄个Set存放一下
             Set<String> st = new HashSet<String>();
