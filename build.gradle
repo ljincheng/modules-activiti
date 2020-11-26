@@ -1,7 +1,7 @@
 buildscript {
 
     ext {
-        set('springCloudVersion', "2020.0.0-SNAPSHOT")
+        set('springCloudVersion', "Hoxton.SR9")
         set("booktableVersion","1.0.0")
         set("springBootVersion","2.4.0")
         set("shiroVersion","1.4.0")

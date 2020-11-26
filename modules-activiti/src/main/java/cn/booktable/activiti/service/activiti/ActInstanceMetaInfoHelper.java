@@ -11,18 +11,17 @@ import java.util.Map;
 public class ActInstanceMetaInfoHelper {
     public static final String INSTANCE_VAR_METAINFO="metainfo";
     public static final String INSTANCE_VAR_VARIABLES="variables";
-    public static ActInstanceMetaInfo newInstanceVariables(String name, String userId, String userName, String status){
+    public static ActInstanceMetaInfo newInstanceVariables( String userId, String userName, String status){
         ActInstanceMetaInfo variables=new ActInstanceMetaInfo();
-        variables.setName(name);
         variables.setUserId(userId);
         variables.setUserName(userName);
         variables.setStatus(status);
         return variables;
     }
 
-    public static  Map<String,Object> createInstanceVariables(String name,String userId,String userName,String status,Map<String,Object> variables){
+    public static  Map<String,Object> createInstanceVariables(String userId,String userName,String status,Map<String,Object> variables){
         Map<String ,Object> instanceVariables=new HashMap<>();
-        instanceVariables.put(INSTANCE_VAR_METAINFO,newInstanceVariables(name,userId,userName,status));
+        instanceVariables.put(INSTANCE_VAR_METAINFO,newInstanceVariables(userId,userName,status));
         instanceVariables.put(INSTANCE_VAR_VARIABLES,variables);
         return instanceVariables;
     }

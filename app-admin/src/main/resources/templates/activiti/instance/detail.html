@@ -32,12 +32,11 @@
     <div class="tab-content">
         <div class="tab-pane in active" id="listTab">
             <div class="card">
-<div>
-
-    <a th:text="${actInstance?.approvalName}"></a><br>
-    <a th:text="${actInstance?.instanceName}"></a>
+<div class="card-header">
+    <h1 th:text="${actInstance?.instanceName}"></h1>
 </div>
                 <div class="card-body table-responsive" id="datalist">
+                    <h4 class="panel-title">当前审批节点</h4>
                     <table   class="table table-hover" >
                         <thead>
                         <tr>
@@ -89,6 +88,7 @@
                         </tbody>
                     </table>
 
+                    <h4 class="panel-title">流程处理</h4>
                     <table   class="table table-hover" >
                         <thead>
                         <tr>
@@ -113,19 +113,52 @@
                         </tbody>
                     </table>
 
+
+                    <h4 class="panel-title">流程表格</h4>
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th >节点</th>
+                            <th >节点名称</th>
+                            <th >处理人</th>
+                            <th >流向</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${actInstance?.timelineList}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td th:text="${modelObj?.id}"></td>
+                            <td th:text="${modelObj?.name}"></td>
+                            <td th:text="${modelObj?.userId}"></td>
+                            <td >
+                                <th:block th:each="outgoingObj,subSta: ${modelObj.outgoing}">
+                                    <span th:if="${subSta.index > 0 }"> / </span>
+                                    <a th:text="${outgoingObj?.name}"></a>
+                                </th:block>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
                     <form id="form_instance_approve">
 
                         <input type="text" placeholder="taskId" name="taskId" id="taskId">
-                        <input type="text" placeholder="instanceCode" name="instanceCode" id="instanceCode">
+                        <input type="text" placeholder="instanceCode" name="instanceCode" id="instanceCode" th:value="${actInstance?.instanceCode}">
                         <input type="text" placeholder="userId" id="userId" name="userId">
-                        <input type="text" placeholder="message" id="comment" name="comment">
-                        <input type="text" placeholder="flag" id="flag" name="flag">
+                        <input type="text" placeholder="message" id="comment" name="comment" value="测试通知了!">
+                        <select name="status"  id="status">
+                            <option value="APPROVED">同意</option>
+                            <option value="REJECTED">拒绝</option>
+                        </select>
                         <input type="button" value="提交审批" onclick="submitApprove()" />
                     </form>
 
                 </div>
                 <div class="card-footer">
-
+                    <h4 class="panel-title">流程图</h4>
                 </div>
 
             </div>

@@ -27,5 +27,7 @@ public class ActTask {
     private Map<String,Object> processVariables;
     private Date claimTime;
 
+    private ActInstance instance;
+
 
 }

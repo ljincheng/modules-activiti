@@ -2,6 +2,7 @@ package cn.booktable.appadmin.controller.activiti;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
+import cn.booktable.activiti.entity.activiti.ActTask;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.appadmin.utils.ViewUtils;
@@ -13,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
 
 import java.util.HashMap;
 import java.util.List;
@@ -59,13 +61,45 @@ public class ActInstanceController {
         return view;
     }
 
+    /**
+     * 审批
+     * @param instanceCode
+     * @param taskId
+     * @param comment
+     * @param userId
+     * @return
+     */
     @PostMapping("/approve/{instanceCode}")
-    public JsonView<String> approve(@PathVariable("instanceCode") String instanceCode, String taskId, String comment, String userId){
+    public JsonView<String> approve(@PathVariable("instanceCode") String instanceCode, String taskId, String comment, String userId,String status){
         JsonView<String> view=new JsonView<String>();
         Map<String,Object> param=new HashMap<>();
+       ActResult<Void> actResult= actInstanceService.approve(taskId,instanceCode,status,comment,userId,param);
+       if(ActivitiUtils.isOkResult(actResult)) {
+           ViewUtils.submitSuccess(view, messageSource);
+       }else{
+           ViewUtils.submitFail(view,actResult.getMsg());
+       }
+        return view;
+    }
+
+    @GetMapping("/myTask")
+    public JsonView<List<ActTask>> myTask( String userId,String groupId){
+        JsonView<List<ActTask>> view=new JsonView<List<ActTask>>();
+        Map<String,Object> param=new HashMap<>();
         param.put("flag",'Y');
-        actInstanceService.approve(taskId,instanceCode,comment,userId,param);
+        List<ActTask> taskList= actInstanceService.activeTask(userId,groupId);
+
         ViewUtils.submitSuccess(view,messageSource);
+        view.setData(taskList);
+
+        return view;
+    }
+
+    @GetMapping("/activeTask")
+    public ModelAndView activeTask(String userId,String groupId){
+        ModelAndView view=new ModelAndView("activiti/instance/activeTask");
+        List<ActTask> taskList= actInstanceService.activeTask(userId,groupId);
+        view.addObject("taskList",taskList);
         return view;
     }
 }

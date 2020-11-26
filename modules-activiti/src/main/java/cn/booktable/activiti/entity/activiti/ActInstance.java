@@ -19,4 +19,5 @@ public class ActInstance {
 
     private List<ActTask> taskList;
     private List<ActComment> commentList;
+    private List<ActTimeline> timelineList;
 }

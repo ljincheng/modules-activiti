@@ -2,6 +2,7 @@ package cn.booktable.activiti.service.activiti;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
+import cn.booktable.activiti.entity.activiti.ActTask;
 
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,12 @@ public interface ActInstanceService {
      * 审批
      * @param taskId
      * @param instanceCode
+     * @param status
      * @param comments
      * @param userId
      * @param variables
      */
-    void approve(String taskId, String instanceCode, String comments,String userId, Map<String, Object> variables);
+    ActResult<Void> approve(String taskId, String instanceCode,String status, String comments,String userId, Map<String, Object> variables);
 
     /**
      *创建审批实例
@@ -32,4 +34,13 @@ public interface ActInstanceService {
      * @param variables
      */
     ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables);
+
+
+    /**
+     * 获取用户待办任务
+     * @param userId
+     * @param groupId
+     * @return
+     */
+    List<ActTask> activeTask(String userId,String groupId);
 }

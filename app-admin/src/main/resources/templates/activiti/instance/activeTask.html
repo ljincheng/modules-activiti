@@ -33,24 +33,22 @@
                         <thead>
                         <tr>
                             <th data-th-width="80px" th:text="#{i18n.serial}"></th>
-                            <th  >approvalCode</th>
-                            <th >approvalName</th>
-                            <th >instanceCode</th>
-                            <th >startTime</th>
-                            <th >DeploymentId</th>
-                            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+                            <th  >名称</th>
+                            <th  >流程编号</th>
+                            <th >任务名称</th>
+                            <th >处理人</th>
+                            <th >申请时间</th>
                         </tr>
                         </thead>
                         <tbody>
 
-                        <tr th:each="modelObj,status: ${instanceList}">
+                        <tr th:each="modelObj,status: ${taskList}">
                             <td th:text="${ status.index +1}"></td>
-                            <td th:text="${modelObj?.approvalCode}" ></td>
-                            <td th:text="${modelObj?.approvalName}"  ></td>
-                            <td th:text="${modelObj?.instanceName}"  ></td>
-                            <td th:text="${modelObj?.instanceCode}" th:onclick="openDetail([[${modelObj?.instanceCode}]])" ></td>
-                            <td th:text="${#dates.format(modelObj?.startTime,'yyyy-MM-dd HH:mm')}"></td>
-                            <td th:text="${modelObj?.deploymentId}" th:onclick="openDetail([[${modelObj?.instanceCode}]])" ></td>
+                            <td th:text="${modelObj?.instance.instanceName}" ></td>
+                            <td th:text="${modelObj?.instance.instanceCode}" ></td>
+                            <td th:text="${modelObj?.name}"  ></td>
+                            <td th:text="${modelObj?.assignee}" th:onclick="openDetail([[${modelObj?.instance.instanceCode}]])" ></td>
+                            <td th:text="${#dates.format(modelObj?.instance.startTime,'yyyy-MM-dd HH:mm')}"></td>
 
                         </tr>
 

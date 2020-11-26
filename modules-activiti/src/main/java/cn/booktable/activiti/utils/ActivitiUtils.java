@@ -1,11 +1,16 @@
 package cn.booktable.activiti.utils;
 
+import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
+import cn.booktable.activiti.entity.activiti.ActTask;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
 import org.activiti.engine.history.HistoricActivityInstance;
+import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,4 +144,63 @@ public class ActivitiUtils {
         result.setMsg("ok");
     }
 
+
+
+    public static ActInstance parseInstance(ProcessInstance instance,ActInstance actInstance) {
+        if (instance == null) {
+            return null;
+        }
+        if (actInstance == null){
+             actInstance = new ActInstance();
+         }
+        actInstance.setApprovalCode(instance.getProcessDefinitionKey());
+        actInstance.setInstanceCode(instance.getBusinessKey());
+        actInstance.setApprovalName(instance.getProcessDefinitionName());
+        actInstance.setInstanceName(instance.getName());
+        actInstance.setStartTime(instance.getStartTime());
+        actInstance.setDeploymentId(instance.getDeploymentId());
+        actInstance.setId(instance.getId());
+        actInstance.setUserId(instance.getStartUserId());
+        return actInstance;
+    }
+
+    public static ActInstance parseInstance(HistoricProcessInstance instance, ActInstance actInstance) {
+        if (instance == null) {
+            return null;
+        }
+        if (actInstance == null){
+             actInstance = new ActInstance();
+         }
+        actInstance.setApprovalCode(instance.getProcessDefinitionKey());
+        actInstance.setInstanceCode(instance.getBusinessKey());
+        actInstance.setApprovalName(instance.getProcessDefinitionName());
+        actInstance.setInstanceName(instance.getName());
+        actInstance.setStartTime(instance.getStartTime());
+        actInstance.setDeploymentId(instance.getDeploymentId());
+        actInstance.setId(instance.getId());
+        actInstance.setUserId(instance.getStartUserId());
+        return actInstance;
+    }
+
+    public static ActTask parseTask(Task task){
+        ActTask actTask = new ActTask();
+        actTask.setId(task.getId());
+        actTask.setName(task.getName());
+        actTask.setOwner(task.getOwner());
+        actTask.setAssignee(task.getAssignee());
+        actTask.setCategory(task.getCategory());
+        actTask.setClaimTime(task.getClaimTime());
+        actTask.setCreateTime(task.getCreateTime());
+        actTask.setDescription(task.getDescription());
+        actTask.setDueDate(task.getDueDate());
+        actTask.setExecutionId(task.getExecutionId());
+        actTask.setFormKey(task.getFormKey());
+        actTask.setProcessVariables(task.getProcessVariables());
+        actTask.setTaskLocalVariables(task.getTaskLocalVariables());
+        actTask.setTenantId(task.getTenantId());
+        actTask.setParentTaskId(task.getParentTaskId());
+        actTask.setProcessDefinitionId(task.getProcessDefinitionId());
+        actTask.setProcessInstanceId(task.getProcessInstanceId());
+        return actTask;
+    }
 }

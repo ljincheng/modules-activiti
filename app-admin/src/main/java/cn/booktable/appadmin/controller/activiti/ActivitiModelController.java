@@ -38,6 +38,11 @@ public class ActivitiModelController {
         @Autowired
         private ActModelService actModelService;
 
+    /**
+     * 创建模型
+     * @param actModel
+     * @return
+     */
     @RequestMapping("/create")
     public JsonView<String> modelCreate(ActModel actModel){
         JsonView<String> view=new JsonView<>();
@@ -106,6 +111,16 @@ public class ActivitiModelController {
         }
     }
 
+    /**
+     * 模型保存
+     * @param modelId
+     * @param name
+     * @param description
+     * @param svg_xml
+     * @param json_xml
+     * @param request
+     * @return
+     */
     @RequestMapping(value = "/{modelId}/save", method = RequestMethod.PUT)
 //    @ResponseBody
     public JsonView<String> save(@PathVariable String modelId, String name, String description, String svg_xml, String json_xml, HttpServletRequest request) {
@@ -127,6 +142,11 @@ public class ActivitiModelController {
 
     }
 
+    /**
+     * 删除模型
+     * @param modelId
+     * @return
+     */
     @PostMapping("/delete/{modelId}")
     public JsonView<Boolean> delete(@PathVariable String modelId) {
         JsonView<Boolean> view=new JsonView<>();
@@ -147,6 +167,11 @@ public class ActivitiModelController {
 
     }
 
+    /**
+     * 部署
+     * @param modelId
+     * @return
+     */
     @PostMapping("/deploy/{modelId}")
     public JsonView<String> deploy(@PathVariable String modelId) {
         JsonView<String> view=new JsonView<>();
@@ -166,7 +191,11 @@ public class ActivitiModelController {
 
     }
 
-
+    /**
+     * 删除部署
+     * @param id
+     * @return
+     */
     @PostMapping("/deleteDeploy")
     public JsonView<String> deleteDeploy(String id){
         JsonView<String> result=new JsonView<>();
@@ -182,6 +211,12 @@ public class ActivitiModelController {
     }
 
 
+    /**
+     * 模型图
+     * @param id
+     * @param request
+     * @param response
+     */
     @RequestMapping("/image")
     public void image(String id, HttpServletRequest request, HttpServletResponse response) {
         if(StringUtils.isNoneBlank(id)) {
