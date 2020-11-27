@@ -80,6 +80,17 @@
 <th:block th:replace="fragments/headTag2 ::script "></th:block>
 <script type="text/javascript">
 
+    function exportModel(id) {
+        var url="exportBpmn/"+id;
+        openWindow({
+            title:/*[[#{i18n.add('')}]]*/"",
+            url:url ,
+            complete: function (resData) {
+
+            }
+        });
+    }
+
     function viewImage(id) {
         var url="image?id="+id;
         openWindow({
@@ -90,6 +101,7 @@
             }
         });
     }
+
     function viewInstanceList(mkey,mdeployId) {
         openWindow({
             title:/*[[#{i18n.add('')}]]*/"",

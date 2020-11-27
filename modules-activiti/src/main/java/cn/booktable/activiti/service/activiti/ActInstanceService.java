@@ -4,6 +4,7 @@ import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActTask;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ public interface ActInstanceService {
      */
     ActResult<Void> approve(String taskId, String instanceCode,String status, String comments,String userId, Map<String, Object> variables);
 
+
     /**
      *创建审批实例
      * @param approvalCode
@@ -43,4 +45,7 @@ public interface ActInstanceService {
      * @return
      */
     List<ActTask> activeTask(String userId,String groupId);
+
+
+    public InputStream image(String instanceCode);
 }

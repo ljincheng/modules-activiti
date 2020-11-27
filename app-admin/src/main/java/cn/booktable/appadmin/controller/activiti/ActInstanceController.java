@@ -7,6 +7,8 @@ import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.appadmin.utils.ViewUtils;
 import cn.booktable.core.view.JsonView;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,5 +108,31 @@ public class ActInstanceController {
         List<ActTask> taskList= actInstanceService.activeTask(userId,groupId);
         view.addObject("taskList",taskList);
         return view;
+    }
+
+    @RequestMapping("/image/{instanceCode}")
+    public void imageProcess(@PathVariable("instanceCode") String instanceCode, HttpServletRequest request, HttpServletResponse response) {
+        if(StringUtils.isNoneBlank(instanceCode)) {
+            //获取流程图文件流
+            InputStream in = actInstanceService.image(instanceCode);
+
+            OutputStream out = null;
+            try {
+                out =response.getOutputStream();
+                if(in!=null) {
+                    byte[] b = new byte[1024];
+                    int len;
+                    while ((len = in.read(b, 0, 1024)) != -1) {
+                        out.write(b, 0, len);
+                    }
+                    out.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                IOUtils.closeQuietly(in);
+                IOUtils.closeQuietly(out);
+            }
+        }
     }
 }

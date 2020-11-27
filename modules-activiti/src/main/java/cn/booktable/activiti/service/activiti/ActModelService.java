@@ -4,6 +4,7 @@ import cn.booktable.activiti.entity.activiti.ActModel;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import com.alibaba.fastjson.JSONObject;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
@@ -35,4 +36,6 @@ public interface ActModelService {
     List<ActModel> processListAll(String key,String name);
 
 
+    ActResult<InputStream> exportBpmnModel(String modelId);
+    ActResult<Void> importBpmnModel(String modelId,InputStream stream);
 }

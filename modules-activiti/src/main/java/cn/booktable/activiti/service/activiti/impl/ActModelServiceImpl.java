@@ -192,6 +192,11 @@ public class ActModelServiceImpl implements ActModelService{
                   ObjectNode propertiesObj=(ObjectNode)propertiesNode;
                   propertiesObj.put(MODEL_PROCESS_ID,model.getKey());
                   propertiesObj.put(MODEL_NAME,model.getName());
+              }else {
+                  ObjectNode properties=objectMapper.createObjectNode();
+                  properties.put(MODEL_PROCESS_ID,model.getKey());
+                  properties.put(MODEL_NAME,model.getName());
+                  editorJsonNode.put("properties",properties);
               }
                 modelNode.put("model", editorJsonNode);
 
@@ -212,15 +217,33 @@ public class ActModelServiceImpl implements ActModelService{
         try {
             Model modelData = repositoryService.getModel(modelId);
             ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(repositoryService.getModelEditorSource(modelData.getId()));
+            JsonNode propertiesNode= modelNode.get("properties");
+            if(propertiesNode!=null){
+                ObjectNode propertiesObj=(ObjectNode)propertiesNode;
+                String proId=propertiesObj.get(MODEL_PROCESS_ID).textValue();
+                if(proId.isEmpty() || "未定义".equals(proId)) {
+                    propertiesObj.put(MODEL_PROCESS_ID, modelData.getKey());
+                }
+                if(propertiesObj.get(MODEL_NAME).textValue().isEmpty()) {
+                    propertiesObj.put(MODEL_NAME, modelData.getName());
+                }
+            }else {
+                ObjectNode properties=objectMapper.createObjectNode();
+                properties.put(MODEL_PROCESS_ID,modelData.getKey());
+                properties.put(MODEL_NAME,modelData.getName());
+                modelNode.put("properties",properties);
+            }
+
             byte[] bpmnBytes = null;
 
             BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
+
             bpmnBytes = new BpmnXMLConverter().convertToXML(model);
 
             byte[] bytes = repositoryService.getModelEditorSourceExtra(modelData.getId());
 
             String processName = modelData.getName() + ".bpmn20.xml";
-            Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).key(modelData.getKey())
+            Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).key(modelData.getKey()).category(modelData.getCategory())
                     .addBytes(modelData.getName() + ".png", bytes)
                     .addString(processName, new String(bpmnBytes)).deploy();
 
@@ -231,6 +254,37 @@ public class ActModelServiceImpl implements ActModelService{
         }
 
         return result;
+    }
+
+    @Override
+    public ActResult<InputStream> exportBpmnModel(String modelId) {
+        ActResult<InputStream> result=new ActResult<>();
+        try {
+            Model modelData = repositoryService.getModel(modelId);
+            ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(repositoryService.getModelEditorSource(modelData.getId()));
+            byte[] bpmnBytes = null;
+
+            BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
+            bpmnBytes = new BpmnXMLConverter().convertToXML(model);
+
+         //   byte[] bytes = repositoryService.getModelEditorSourceExtra(modelData.getId());
+
+            //String processName = modelData.getName() + ".bpmn20.xml";
+
+            InputStream myInputStream = new ByteArrayInputStream(bpmnBytes);
+
+            ActivitiUtils.setOkResult(result);
+            result.setData(myInputStream);
+        }catch (IOException ioex){
+            ActivitiUtils.setFailResult(result,ioex);
+        }
+
+        return result;
+    }
+
+    @Override
+    public ActResult<Void> importBpmnModel(String modelId, InputStream stream) {
+        return null;
     }
 
     @Override

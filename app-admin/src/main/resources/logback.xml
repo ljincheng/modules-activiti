@@ -25,11 +25,11 @@
 		</encoder>
 	</appender>
 
-	<root level="INFO">
+	<root level="debug">
 		<appender-ref ref="console" />
 		<appender-ref ref="application" />
 	</root>
 
-	<logger name="cn.booktable" level="info" />
+	<logger name="cn.booktable" level="debug" />
 	<logger name="org.springframework" level="info" />
 </configuration>

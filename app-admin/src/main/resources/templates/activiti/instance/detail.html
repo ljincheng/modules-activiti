@@ -8,7 +8,6 @@
         function submitApprove(){
 
             var instanceCode=$("#instanceCode").val();
-            alert(instanceCode);
             loadJsonData({url:"./approve/"+instanceCode,data:$("#form_instance_approve").serialize(),complete:function(resultData){
                     alertLayer(resultData.msg);
                 }});
@@ -159,6 +158,9 @@
                 </div>
                 <div class="card-footer">
                     <h4 class="panel-title">流程图</h4>
+                    <div class="flowImgContainer">
+                    <embed class="flowImg" type="image/svg+xml"  th:src="@{./image/{id}(id=${actInstance?.instanceCode})}"  />
+                    </div>
                 </div>
 
             </div>
@@ -174,6 +176,13 @@
 
 <th:block th:replace="fragments/headTag2 ::script "></th:block>
 
-<iframe th:src="@{/activiti/imageProcess?id={id}(id=${actInstance?.instanceCode})}"  style="width:100%; height: 550px; " frameborder="0" />
+<style type="text/css" >
+.flowImg{
+width: 100%;
+    height: 450px;
+}
+
+</style>
+
 </body>
 </html>

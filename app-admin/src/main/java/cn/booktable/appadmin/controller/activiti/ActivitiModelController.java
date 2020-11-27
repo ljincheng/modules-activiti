@@ -4,7 +4,6 @@ package cn.booktable.appadmin.controller.activiti;
 import cn.booktable.activiti.entity.activiti.ActModel;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.service.activiti.ActModelService;
-import cn.booktable.activiti.service.activiti.ActProcessService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.appadmin.utils.ViewUtils;
 import cn.booktable.core.view.JsonView;
@@ -31,8 +30,6 @@ import java.util.List;
 public class ActivitiModelController {
         private static Logger logger= LoggerFactory.getLogger(ActivitiModelController.class);
 
-        @Autowired
-        private ActProcessService actProcessService;
         @Autowired
         private MessageSource messageSource;
         @Autowired
@@ -139,7 +136,6 @@ public class ActivitiModelController {
             logger.error("保存流程模型失败，错误信息:{}", e);
         }
         return view;
-
     }
 
     /**
@@ -225,6 +221,36 @@ public class ActivitiModelController {
             if(ActivitiUtils.isOkResult(result)) {
                 InputStream in = result.getData();
                 try {
+                    if (in != null) {
+                        byte[] b = new byte[1024];
+                        int len;
+                        while ((len = in.read(b, 0, 1024)) != -1) {
+                            response.getOutputStream().write(b, 0, len);
+                        }
+                        response.getOutputStream().flush();
+                        response.getOutputStream().close();
+                        in.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+
+            }
+        }
+    }
+
+
+    @RequestMapping("/exportBpmn/{modelId}")
+    public void exportBpmn(@PathVariable String modelId, HttpServletRequest request, HttpServletResponse response) {
+        if(StringUtils.isNoneBlank(modelId)) {
+            //获取流程图文件流
+            ActResult<InputStream> result=actModelService.exportBpmnModel(modelId);
+            if(ActivitiUtils.isOkResult(result)) {
+                InputStream in = result.getData();
+                try {
+                    //设置响应头 以下载的方式返回到浏览器
+                    response.setHeader("Content-Disposition","attachment;filename="+modelId.trim().replace("-","")+".bpmn20.xml");
                     if (in != null) {
                         byte[] b = new byte[1024];
                         int len;

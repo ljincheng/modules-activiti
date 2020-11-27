@@ -6,11 +6,11 @@ import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import org.activiti.api.process.model.builders.ProcessPayloadBuilder;
 import org.activiti.api.process.runtime.ProcessRuntime;
+import org.activiti.api.task.model.builders.TaskPayloadBuilder;
 import org.activiti.bpmn.model.*;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
+import org.activiti.engine.*;
+import org.activiti.engine.history.HistoricActivityInstance;
+import org.activiti.engine.history.HistoricActivityInstanceQuery;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.identity.Authentication;
@@ -23,14 +23,21 @@ import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
+import org.activiti.image.ProcessDiagramGenerator;
+import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 import org.apache.catalina.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("actInstanceService")
 public class ActInstanceServiceImpl implements ActInstanceService {
+    private static Logger logger= LoggerFactory.getLogger(ActInstanceServiceImpl.class);
 
     @Autowired
     private RuntimeService runtimeService;
@@ -43,7 +50,9 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     private RepositoryService repositoryService;
 
     @Autowired
-    private  ProcessRuntime processRuntime;
+    private ManagementService managementService;
+    @Autowired
+    private ProcessDiagramGenerator processDiagramGenerator;
 
     @Override
     public List<ActInstance> queryListAll(String approvalCode,String deploymentId) {
@@ -227,19 +236,19 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             return result;
         }
         // 使用任务ID，查询任务对象，获取流程流程实例ID
-        Task task =taskQuery.singleResult();
-        String taskUserId=task.getAssignee();
-        if(taskUserId!=null && taskUserId.length()>0){//单个审批人
-            if(!ActStatus.START.equals(status) && !taskUserId.equals(userId)){
-                ActivitiUtils.setFailResult(result,"审批人无权限操作当前流程");
-                return result;
-            }
-        }else {
-            if(!ActStatus.START.equals(status)) {
-                ActivitiUtils.setFailResult(result, "当前流程节点没有设置审批人");
-                return result;
-            }
-        }
+        Task task =taskQuery.taskId(taskId).singleResult();
+//        String taskUserId=task.getAssignee();
+//        if(taskUserId!=null && taskUserId.length()>0){//单个审批人
+//            if(!ActStatus.START.equals(status) && !taskUserId.equals(userId)){
+//                ActivitiUtils.setFailResult(result,"审批人无权限操作当前流程");
+//                return result;
+//            }
+//        }else {
+//            if(!ActStatus.START.equals(status)) {
+//                ActivitiUtils.setFailResult(result, "当前流程节点没有设置审批人");
+//                return result;
+//            }
+//        }
 
         // 获取流程实例ID
         String processInstanceId = task.getProcessInstanceId();
@@ -257,17 +266,25 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
         // 使用任务ID，完成当前人的个人任务，同时流程变量
 
-        if(ActStatus.APPROVED.equals(status)) {
+        if(ActStatus.APPROVED.equals(status) || ActStatus.START.equals(status)) {
             taskService.complete(taskId, ActInstanceMetaInfoHelper.createInstanceVariables(userId, null, ActStatus.APPROVED, variables), true);
         }else if(ActStatus.REJECTED.equals(status)){
-            taskService.complete(taskId, ActInstanceMetaInfoHelper.createInstanceVariables(userId, null, ActStatus.REJECTED, variables), true);
+            //taskService.complete(taskId, ActInstanceMetaInfoHelper.createInstanceVariables(userId, null, ActStatus.APPROVED, variables), true);
+            managementService.executeCommand(new ActEndCmd(taskId));
+//            Task nextTask = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+//            if(nextTask!=null) {
+//
+//            }
         }
 
         /**
          * 在完成任务之后，判断流程是否结束 如果流程结束了，更新请假单表的状态从1变成2（审核中-->审核完成）
          */
+
+
         return result;
     }
+
 
 
 
@@ -292,10 +309,10 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 .name(name)
                 .start();
         if(processInstance!=null) {
-            List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
-            if(taskList!=null && taskList.size()==1) {
-                approve(taskList.get(0).getId(), instanceCode,ActStatus.START, "提交", userId, variables);
-            }
+//            List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
+//            if(taskList!=null && taskList.size()==1) {
+//                approve(taskList.get(0).getId(), instanceCode,ActStatus.START, "提交", userId, variables);
+//            }
             ActivitiUtils.setOkResult(result);
         }else {
             ActivitiUtils.setFailResult(result,"发起实例失败");
@@ -322,6 +339,81 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
         }
         return myTaskList;
+    }
+
+
+    @Override
+    public InputStream image(String instanceCode) {
+        // 根据业务ID，查询流程实例对象
+        /*
+         * 获取流程实例
+         */
+        HistoricProcessInstance processInstance = historyService.createHistoricProcessInstanceQuery().processInstanceBusinessKey(instanceCode).singleResult();
+        if (processInstance == null) {
+            return null;
+        }
+        // 根据流程对象获取流程对象模型
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
+        /*
+         * 查看已执行的节点集合 获取流程历史中已执行节点，并按照节点在流程中执行先后顺序排序
+         */
+        // 构造历史流程查询
+        HistoricActivityInstanceQuery historyInstanceQuery = historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstance.getId());
+        // 查询历史节点
+        List<HistoricActivityInstance> historicActivityInstanceList = historyInstanceQuery.orderByHistoricActivityInstanceStartTime().asc().list();
+
+        if (historicActivityInstanceList == null || historicActivityInstanceList.size() == 0) {
+            return outputImg(bpmnModel, null, null);
+        }
+        //去掉正要处理的节点
+
+        List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
+
+        if (taskList != null) {
+            for (int i = 0, k = taskList.size(); i < k; i++) {
+                Task task = taskList.get(i);
+
+                for(int delIndex=0,delSize=historicActivityInstanceList.size();delIndex<delSize;delIndex++){
+                    HistoricActivityInstance hi_ins=historicActivityInstanceList.get(delIndex);
+                    if(hi_ins.getActivityId().equals(task.getTaskDefinitionKey())){
+                        historicActivityInstanceList.remove(delIndex);
+                        break;
+                    }
+                }
+
+            }
+        }
+
+
+        // 已执行的节点ID集合(将historicActivityInstanceList中元素的activityId字段取出封装到executedActivityIdList)
+        List<String> executedActivityIdList = historicActivityInstanceList.stream().map(item -> item.getActivityId()).collect(Collectors.toList());
+
+        /*
+         * 获取流程走过的线
+         */
+        // 获取流程定义
+        ProcessDefinitionEntity processDefinition = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService).getDeployedProcessDefinition(processInstance.getProcessDefinitionId());
+        List<String> flowIds = ActivitiUtils.getHighLightedFlows(bpmnModel, processDefinition, historicActivityInstanceList);
+
+        return outputImg(bpmnModel, flowIds, executedActivityIdList);
+    }
+
+    /**
+     * 输出图像
+     * @param bpmnModel              图像对象
+     * @param flowIds                已执行的线集合
+     * @param executedActivityIdList void 已执行的节点ID集合
+     */
+    private InputStream outputImg(BpmnModel bpmnModel, List<String> flowIds, List<String> executedActivityIdList) {
+        InputStream imageStream = null;
+        try {
+            imageStream = processDiagramGenerator.generateDiagram(bpmnModel, executedActivityIdList, flowIds, "宋体", "微软雅黑", "黑体", false, "png");
+
+        } catch (Exception e) {
+            logger.error("显示流程图跟踪报错, 错误信息:{}", e);
+        }
+
+        return imageStream;
     }
 }
 
