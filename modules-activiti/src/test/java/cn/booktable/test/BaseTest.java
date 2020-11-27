@@ -1,6 +1,5 @@
 package cn.booktable.test;
 
-import cn.booktable.activiti.config.ActivitiConfig;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +16,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 //@ComponentScan("cn.booktable")
 //@ContextConfiguration(classes = ElasticsearchAutoConfiguration.class)
-@EnableConfigurationProperties(value = ActivitiConfig.class)
+//@EnableConfigurationProperties(value = ActivitiConfig.class)
 @TestPropertySource("classpath:config-test.properties")
 public class BaseTest {
 
