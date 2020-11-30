@@ -7,6 +7,7 @@ import cn.booktable.activiti.entity.activiti.ActTask;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
+import cn.booktable.appadmin.controller.base.BaseController;
 import cn.booktable.appadmin.utils.ViewUtils;
 import cn.booktable.core.page.PageDo;
 import cn.booktable.core.view.JsonView;
@@ -32,7 +33,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/activiti/instance/")
-public class ActInstanceController {
+public class ActInstanceController extends BaseController {
     private static Logger logger= LoggerFactory.getLogger(ActInstanceController.class);
 
     @Autowired
@@ -65,6 +66,8 @@ public class ActInstanceController {
         Map<String,Object> selected=new HashMap<>();
         if(userId!=null && !userId.isEmpty()){
             selected.put("userId",userId);
+        }else{
+            selected.put("userId",currentUser().getId().toString());
         }
         if(StringUtils.isNotBlank(approvalCode))
         {
