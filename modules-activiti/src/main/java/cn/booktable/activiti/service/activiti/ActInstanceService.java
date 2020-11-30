@@ -3,6 +3,7 @@ package cn.booktable.activiti.service.activiti;
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActTask;
+import cn.booktable.core.page.PageDo;
 
 import java.io.InputStream;
 import java.util.List;
@@ -48,4 +49,23 @@ public interface ActInstanceService {
 
 
     public InputStream image(String instanceCode);
+
+
+    /**
+     * 历史审批流程
+     * @param pageIndex
+     * @param pageSize
+     * @param selected
+     * @return
+     */
+    PageDo<ActInstance> historyPageList(int pageIndex,int pageSize,Map<String,Object> selected);
+
+    /**
+     * 审批中的流程
+     * @param pageIndex
+     * @param pageSize
+     * @param selected
+     * @return
+     */
+    PageDo<ActInstance> processPageList(int pageIndex,int pageSize,Map<String,Object> selected);
 }

@@ -1,0 +1,42 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
+    <table class="table table-hover" >
+        <thead>
+        <tr>
+            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+            <th>名称</th>
+            <th >类型</th>
+            <th >申请人</th>
+            <th >状态</th>
+            <th >申请时间</th>
+            <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="modelObj,status: ${pagedata.page}">
+            <td th:text="${pagedata.totalNum - pagedata.startOfPage - status.index }"></td>
+            <td th:text="${modelObj?.instanceName}"></td>
+            <td th:text="${modelObj?.approvalName}"></td>
+            <td th:text="${modelObj?.userId}"></td>
+            <td th:text="${modelObj?.status}"></td>
+
+
+            <td th:text="${#dates.format(modelObj?.startTime,'yyyy-MM-dd HH:mm')}">时间</td>
+
+            <td>
+<a th:href="@{detail?instanceCode={code}(code=${modelObj?.instanceCode})}">详情</a>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+
+    <script type="text/javascript" th:inline="javascript">
+        <!--
+        $(function(){
+            jqPager({firstBt:/*[[#{sys.page.first}]]*/"首页",preBt:/*[[#{sys.page.previous}]]*/"上一页",nextBt:/*[[#{sys.page.next}]]*/"下一页",lastBt:/*[[#{sys.page.last}]]*/"末页",totalPages:[[${pagedata.totalPage}]],pageIndex:[[${pagedata.pageIndex}]],totalNum:[[${pagedata.totalNum}]],change:toPage});
+        });
+        //-->
+    </script>
+</div>

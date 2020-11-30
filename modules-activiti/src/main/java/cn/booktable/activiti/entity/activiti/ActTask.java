@@ -3,6 +3,7 @@ package cn.booktable.activiti.entity.activiti;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -28,6 +29,7 @@ public class ActTask {
     private Date claimTime;
 
     private ActInstance instance;
+    private List<ActComment> comments;
 
 
 }

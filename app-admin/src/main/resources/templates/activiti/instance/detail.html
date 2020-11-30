@@ -32,7 +32,7 @@
         <div class="tab-pane in active" id="listTab">
             <div class="card">
 <div class="card-header">
-    <h1 th:text="${actInstance?.instanceName}"></h1>
+    <h1 th:text="${actInstance?.instanceName}"></h1>(<span th:text="${actInstance?.status}"></span>)<br><span th:text="${actInstance?.description}"></span>
 </div>
                 <div class="card-body table-responsive" id="datalist">
                     <h4 class="panel-title">当前审批节点</h4>
@@ -93,6 +93,7 @@
                         <tr>
                             <th data-th-width="80px" th:text="#{i18n.serial}"></th>
                             <th >id</th>
+                            <th >审批状态</th>
                             <th >审批意见</th>
                             <th >审批人</th>
                             <th >审批时间</th>
@@ -104,7 +105,8 @@
                         <tr th:each="modelObj,status: ${actInstance?.commentList}">
                             <td th:text="${ status.index +1}"></td>
                             <td th:text="${modelObj?.id}"></td>
-                            <td th:text="${modelObj?.comment}"></td>
+                            <td th:text="${modelObj?.status}"></td>
+                            <td th:text="${modelObj?.message}"></td>
                             <td th:text="${modelObj?.userId}"></td>
                             <td th:text="${#dates.format(modelObj?.createTime,'yyyy-MM-dd HH:mm')}"></td>
                         </tr>
@@ -151,6 +153,8 @@
                         <select name="status"  id="status">
                             <option value="APPROVED">同意</option>
                             <option value="REJECTED">拒绝</option>
+                            <option value="CANCELED">挂起</option>
+                            <option value="DELETED">删除</option>
                         </select>
                         <input type="button" value="提交审批" onclick="submitApprove()" />
                     </form>

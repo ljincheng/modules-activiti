@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<head >
+    <meta charset="UTF-8">
+    <title></title>
+    <th:block th:replace="fragments/headTag2 ::style "></th:block></head>
+<body>
+<div class="page-navs bg-white">
+    <div class="nav-scroller">
+        <div class="nav nav-tabs nav-line nav-color-primary d-flex align-items-center justify-contents-center w-100">
+            <a class="nav-link active show" data-toggle="tab" href="#listTab">历史
+                (<span class="count ml-1 pager_totalnum"></span>）
+            </a>
+            <a class="nav-link btn btn-border ml-auto" data-toggle="tab" href="#addTab"><span class="btn-label"> <i
+                    class="fa fa-plus"></i></span> 处理中
+            </a>
+
+        </div>
+    </div>
+</div>
+<div class="page-inner">
+    <div class="tab-content">
+        <div class="tab-pane in active" id="listTab">
+            <div class="card">
+                <div class="card-header">
+                    <form id="form_1" name="form" onsubmit="return queryStart()"  method="post"  class="form-inline">
+                        <input type="hidden" name="pageIndex" value="1" id="pageIndex">
+                        <input type="hidden" name="pageSize" value="20" >
+
+                        <div class="form-group">
+                            <label  >UserId</label>
+                            <input type="text" class="form-control" name="userId" >
+                        </div>
+
+                        <div class="form-group">
+                            <label >类型 &nbsp;</label>
+                            <select name="approvalCode" class="form-control">
+                                  <option value="">请选择</option>
+                                  <th:block th:each="model: ${modelList}">
+                                      <option th:value="${model.key}" th:text="${model.name}"></option>
+                                  </th:block>
+                              </select>
+                    </div>
+                        <div class="form-group">
+                            <label >状态 &nbsp;</label>
+                            <select name="isHistory" class="form-control">
+                                    <option value="true">历史</option>
+                                    <option value="false">申请中</option>
+                            </select>
+                        </div>
+                        <div >
+                            <input type="submit" class="btn btn-primary" id="queryBtn" value="查询" th:value="#{i18n.query}" />
+                        </div>
+
+                    </form>
+
+                </div>
+                <div class="card-body table-responsive" id="datalist"></div>
+            </div>
+
+
+        </div>
+
+</div>
+<th:block th:replace="fragments/headTag2 ::script "></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $("#queryBtn").click(queryStart);
+        $("#addBtn").click(function () {
+            openWindow({
+                title:/*[[#{i18n.add('')}]]*/"",
+                url:"add",
+                complete:function (resData){
+                    loadData();
+                }
+            });
+        });        queryStart();
+    });
+    function editFun(url){
+        openWindow({
+            title:/*[[#{i18n.add('')}]]*/"",
+            url:url,
+            complete:function (resData){
+                loadData();
+            }
+        });
+    }
+    function submitFn(url,formobj) {
+        loadJsonData({url:url,data:$(formobj).serialize(),complete:function(resultData){
+                queryStart();
+                alertLayer(resultData.msg);
+            }});
+        // $("#form_1").submit();
+    }
+    function deleteFun(data)
+    {
+        confirmLayer({title:/*[[#{i18n.confirm.delete.title}]]*/"确定要删除？",
+            msg:/*[[#{i18n.confirm.delete.unrevert}]]*/"删除后数据无法恢复!",
+            noTitle:/*[[#{i18n.cancel}]]*/"取消",
+            yesTitle:/*[[#{i18n.yes}]]*/"确定",yesFn:function(){
+                loadJsonData({url:"delete",data:data,complete:function(resultData){
+                        if(resultData.code)
+                        {
+                            queryStart();
+                        }
+                        alertLayer(resultData.msg);
+                    }});
+            }});
+        return false;
+    }
+    function loadData()
+    {
+        loadTableData({id:"datalist",url:"historyListData",data:$("#form_1").serialize()});
+    }
+    function queryStart()
+    {
+        toPage(1);
+        return false;
+    }
+
+    function toPage(pageIndex)
+    {
+        $("#pageIndex").val(pageIndex);
+        loadData();
+    }
+</script>
+</body>
+</html>

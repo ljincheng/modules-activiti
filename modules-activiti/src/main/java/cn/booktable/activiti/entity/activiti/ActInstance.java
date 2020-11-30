@@ -12,12 +12,14 @@ public class ActInstance {
     private String approvalName;//名称
     private String instanceName;
     private String instanceCode;
-    private Date startTime;
+    private Date   startTime;
     private String deploymentId;
     private String userId;
-
+    private String status;
+    private String description;
 
     private List<ActTask> taskList;
     private List<ActComment> commentList;
     private List<ActTimeline> timelineList;
+
 }

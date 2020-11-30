@@ -1,6 +1,7 @@
 package cn.booktable.activiti.service.activiti;
 
 import cn.booktable.activiti.entity.activiti.ActInstanceMetaInfo;
+import cn.booktable.activiti.service.activiti.impl.ActIdentityServiceImpl;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +24,7 @@ public class ActInstanceMetaInfoHelper {
         Map<String ,Object> instanceVariables=new HashMap<>();
         instanceVariables.put(INSTANCE_VAR_METAINFO,newInstanceVariables(userId,userName,status));
         instanceVariables.put(INSTANCE_VAR_VARIABLES,variables);
+        instanceVariables.put("actIdentityService",new ActIdentityServiceImpl());
         return instanceVariables;
     }
 

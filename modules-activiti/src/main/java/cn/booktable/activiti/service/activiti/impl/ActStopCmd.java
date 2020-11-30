@@ -15,11 +15,11 @@ import org.activiti.engine.impl.util.ProcessDefinitionUtil;
 
 import java.util.Collection;
 
-public class ActEndCmd implements Command<Void> {
+public class ActStopCmd implements Command<Void> {
 
     private String taskId;
 
-    public ActEndCmd(String taskId){
+    public ActStopCmd(String taskId){
         this.taskId=taskId;
     }
 
@@ -41,6 +41,9 @@ public class ActEndCmd implements Command<Void> {
                 break;
             }
         }
+
+
+
 //        taskEntityManager.deleteTask(taskEntity, "中止操作", true, true);
         //获取历史管理
         HistoryManager historyManager = commandContext.getHistoryManager();
@@ -51,11 +54,15 @@ public class ActEndCmd implements Command<Void> {
         //通知任务节点结束(更新act_hi_taskinst)
         historyManager.recordTaskEnd(taskId,"jump to end");
 
-      //  FlowElement targetFlowElement = process.getFlowElement(targetNodeId);
+        //taskEntityManager.deleteTask(taskEntity, "中止操作", true, true);
+
+
+        //  FlowElement targetFlowElement = process.getFlowElement(targetNodeId);
         executionEntity.setCurrentFlowElement(endFlow);
 
         ActivitiEngineAgenda agenda = commandContext.getAgenda();
-        agenda.planContinueProcessInCompensation(executionEntity);
+//        agenda.planContinueProcessInCompensation(executionEntity);
+        agenda.planEndExecutionOperation(executionEntity);
         return null;
     }
 }

@@ -217,6 +217,7 @@ public class ActModelServiceImpl implements ActModelService{
         try {
             Model modelData = repositoryService.getModel(modelId);
             ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(repositoryService.getModelEditorSource(modelData.getId()));
+            //设置KEY和name
             JsonNode propertiesNode= modelNode.get("properties");
             if(propertiesNode!=null){
                 ObjectNode propertiesObj=(ObjectNode)propertiesNode;
@@ -233,6 +234,7 @@ public class ActModelServiceImpl implements ActModelService{
                 properties.put(MODEL_NAME,modelData.getName());
                 modelNode.put("properties",properties);
             }
+
 
             byte[] bpmnBytes = null;
 

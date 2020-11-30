@@ -2,6 +2,7 @@ package cn.booktable.activiti.utils;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
+import cn.booktable.activiti.entity.activiti.ActStatus;
 import cn.booktable.activiti.entity.activiti.ActTask;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
@@ -10,6 +11,7 @@ import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 
 import java.util.ArrayList;
@@ -161,8 +163,12 @@ public class ActivitiUtils {
         actInstance.setDeploymentId(instance.getDeploymentId());
         actInstance.setId(instance.getId());
         actInstance.setUserId(instance.getStartUserId());
+        actInstance.setDescription(instance.getDescription());
+        actInstance.setStatus(calculateInstanceStatus(instance));
+
         return actInstance;
     }
+
 
     public static ActInstance parseInstance(HistoricProcessInstance instance, ActInstance actInstance) {
         if (instance == null) {
@@ -179,7 +185,36 @@ public class ActivitiUtils {
         actInstance.setDeploymentId(instance.getDeploymentId());
         actInstance.setId(instance.getId());
         actInstance.setUserId(instance.getStartUserId());
+        actInstance.setDescription(instance.getDescription());
+        actInstance.setStatus(calculateInstanceStatus(instance));
         return actInstance;
+    }
+
+    public static String calculateInstanceStatus(ProcessInstance instance){
+        if (instance.isSuspended()) {
+//            return org.activiti.api.process.model.ProcessInstance.ProcessInstanceStatusbing.SUSPENDED;
+            return ActStatus.INSTANCE_CANCELED;
+        } else if (instance.isEnded()) {
+//            return org.activiti.api.process.model.ProcessInstance.ProcessInstanceStatus.COMPLETED;
+            return ActStatus.INSTANCE_APPROVED ;//|| ActStatus.INSTANCE_REJECTED || ActStatus.INSTANCE_DELETED;
+        }
+        return ActStatus.INSTANCE_PENDING;
+    }
+
+    public static String calculateCommentStatus(Comment comment){
+        if(comment!=null)
+        {
+            String msg=comment.getFullMessage();
+            if(msg.startsWith("[") && msg.indexOf("]")>0){
+                String status=msg.substring(1,msg.indexOf("]"));
+                return status;
+            }
+        }
+        return null;
+    }
+
+    public static String calculateInstanceStatus(HistoricProcessInstance instance){
+            return ActStatus.INSTANCE_APPROVED ;//|| ActStatus.INSTANCE_REJECTED || ActStatus.INSTANCE_DELETED;
     }
 
     public static ActTask parseTask(Task task){

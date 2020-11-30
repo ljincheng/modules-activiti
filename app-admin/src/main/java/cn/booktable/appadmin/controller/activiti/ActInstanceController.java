@@ -1,11 +1,14 @@
 package cn.booktable.appadmin.controller.activiti;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
+import cn.booktable.activiti.entity.activiti.ActModel;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActTask;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
+import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.appadmin.utils.ViewUtils;
+import cn.booktable.core.page.PageDo;
 import cn.booktable.core.view.JsonView;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +40,46 @@ public class ActInstanceController {
 
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private ActModelService actModelService;
+
+    @GetMapping("/historyList")
+    public ModelAndView historyList(String approvalCode,String userId,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
+        ModelAndView view=new ModelAndView("activiti/instance/historyList");
+        Map<String,Object> selected=new HashMap<>();
+        if(userId!=null && !userId.isEmpty()){
+            selected.put("userId",userId);
+        }
+        if(StringUtils.isNotBlank(approvalCode))
+        {
+            selected.put("approvalCode",approvalCode);
+        }
+        List<ActModel> modelList = actModelService.listAll(null , null);
+        view.addObject("modelList",modelList);
+        view.addObject("selected",selected);
+        return view;
+    }
+    @PostMapping("/historyListData")
+    public ModelAndView historyListData(String approvalCode,String userId,Boolean isHistory,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
+        ModelAndView view=new ModelAndView("activiti/instance/historyList_table");
+        Map<String,Object> selected=new HashMap<>();
+        if(userId!=null && !userId.isEmpty()){
+            selected.put("userId",userId);
+        }
+        if(StringUtils.isNotBlank(approvalCode))
+        {
+            selected.put("approvalCode",approvalCode);
+        }
+        PageDo<ActInstance> instanceList =null;
+        if(isHistory!=null && isHistory.booleanValue()) {
+            instanceList = actInstanceService.historyPageList(pageIndex, pageSize, selected);
+        }else{
+            instanceList=actInstanceService.processPageList(pageIndex,pageSize,selected);
+        }
+        view.addObject("pagedata", instanceList);
+        return view;
+    }
+
 
     @GetMapping("/list")
     public ModelAndView list(String approvalCode,String deploymentId){

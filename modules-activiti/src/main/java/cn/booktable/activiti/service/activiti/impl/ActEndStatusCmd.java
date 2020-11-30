@@ -15,12 +15,14 @@ import org.activiti.engine.impl.util.ProcessDefinitionUtil;
 
 import java.util.Collection;
 
-public class ActEndCmd implements Command<Void> {
+public class ActEndStatusCmd implements Command<Void> {
 
     private String taskId;
+    private String status;
 
-    public ActEndCmd(String taskId){
+    public ActEndStatusCmd(String taskId,String status){
         this.taskId=taskId;
+        this.status=status;
     }
 
     @Override
@@ -28,34 +30,15 @@ public class ActEndCmd implements Command<Void> {
         ExecutionEntityManager executionEntityManager = commandContext.getExecutionEntityManager();
         TaskEntityManager taskEntityManager = commandContext.getTaskEntityManager();
         TaskEntity taskEntity = taskEntityManager.findById(this.taskId);
-
-        ExecutionEntity executionEntity = executionEntityManager.findById(taskEntity.getExecutionId());
-
-        Process process = ProcessDefinitionUtil.getProcess(executionEntity.getProcessDefinitionId());
-
-        Collection<FlowElement> flowElements = process.getFlowElements();
-        FlowElement endFlow=null;
-        for (FlowElement flowElement : flowElements) {
-            if (flowElement instanceof EndEvent) {
-                endFlow=flowElement;
-                break;
-            }
-        }
-//        taskEntityManager.deleteTask(taskEntity, "中止操作", true, true);
         //获取历史管理
         HistoryManager historyManager = commandContext.getHistoryManager();
         //获取当前节点的执行实例
         ExecutionEntity execution = taskEntity.getExecution();
         //通知当前活动结束(更新act_hi_actinst)
-        historyManager.recordActivityEnd(execution,"jump to end");
+        historyManager.recordActivityEnd(execution,status);
         //通知任务节点结束(更新act_hi_taskinst)
-        historyManager.recordTaskEnd(taskId,"jump to end");
+        historyManager.recordTaskEnd(taskId,status);
 
-      //  FlowElement targetFlowElement = process.getFlowElement(targetNodeId);
-        executionEntity.setCurrentFlowElement(endFlow);
-
-        ActivitiEngineAgenda agenda = commandContext.getAgenda();
-        agenda.planContinueProcessInCompensation(executionEntity);
         return null;
     }
 }

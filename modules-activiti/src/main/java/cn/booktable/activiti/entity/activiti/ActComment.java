@@ -10,4 +10,8 @@ public class ActComment {
     private String id;
     private String comment;
     private Date  createTime;
+    private String taskId;
+    private String status;
+    private String message;
+
 }
