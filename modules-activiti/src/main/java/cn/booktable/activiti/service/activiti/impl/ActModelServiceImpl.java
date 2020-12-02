@@ -105,6 +105,7 @@ public class ActModelServiceImpl implements ActModelService{
                 transcoder.transcode(input, output);
                 final byte[] ioresult = outStream.toByteArray();
                 repositoryService.addModelEditorSourceExtra(model.getId(), ioresult);
+                ActivitiUtils.setOkResult(result);
             } finally {
                 outStream.close();
             }
@@ -225,9 +226,9 @@ public class ActModelServiceImpl implements ActModelService{
                 if(proId.isEmpty() || "未定义".equals(proId)) {
                     propertiesObj.put(MODEL_PROCESS_ID, modelData.getKey());
                 }
-                if(propertiesObj.get(MODEL_NAME).textValue().isEmpty()) {
-                    propertiesObj.put(MODEL_NAME, modelData.getName());
-                }
+
+                 propertiesObj.put(MODEL_NAME, modelData.getName());
+
             }else {
                 ObjectNode properties=objectMapper.createObjectNode();
                 properties.put(MODEL_PROCESS_ID,modelData.getKey());
@@ -235,12 +236,9 @@ public class ActModelServiceImpl implements ActModelService{
                 modelNode.put("properties",properties);
             }
 
-
-            byte[] bpmnBytes = null;
-
             BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
 
-            bpmnBytes = new BpmnXMLConverter().convertToXML(model);
+            byte[]  bpmnBytes = new BpmnXMLConverter().convertToXML(model);
 
             byte[] bytes = repositoryService.getModelEditorSourceExtra(modelData.getId());
 
