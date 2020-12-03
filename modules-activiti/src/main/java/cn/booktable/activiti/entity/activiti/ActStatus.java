@@ -6,6 +6,7 @@ package cn.booktable.activiti.entity.activiti;
 public class ActStatus {
 
 
+
     /** 审批任务状态:开始 **/
     public static String START="START";
     /** 审批任务状态:进行中 **/
@@ -48,4 +49,8 @@ public class ActStatus {
      * 表示当前审批实例正在流程中，但是由于管理员停用或删除了当前审批定义，导致该审批实例变为已删除状态
      **/
     public static String INSTANCE_DELETED="DELETED";
+    /**
+     * 已完成
+     */
+    public static String INSTANCE_DONE="DONE";
 }

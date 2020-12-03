@@ -36,7 +36,7 @@ public interface ActInstanceService {
      * @param userId
      * @param variables
      */
-    ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables);
+    ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables,Map<String,Object> form);
 
 
     /**

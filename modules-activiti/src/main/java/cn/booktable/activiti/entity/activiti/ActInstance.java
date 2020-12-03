@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ActInstance {
@@ -21,5 +22,7 @@ public class ActInstance {
     private List<ActTask> taskList;
     private List<ActComment> commentList;
     private List<ActTimeline> timelineList;
+    private Map<String,Object> form;
+    private Map<String, Object> variables;
 
 }

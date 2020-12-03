@@ -1,33 +1,24 @@
 package cn.booktable.activiti.service.activiti.impl;
 
+import cn.booktable.activiti.core.SecurityUtil;
 import cn.booktable.activiti.entity.activiti.*;
-import cn.booktable.activiti.service.activiti.ActInstanceMetaInfoHelper;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.core.page.PageDo;
-import org.activiti.api.process.model.builders.ProcessPayloadBuilder;
-import org.activiti.api.process.runtime.ProcessRuntime;
-import org.activiti.api.task.model.builders.TaskPayloadBuilder;
+import com.alibaba.fastjson.JSONObject;
 import org.activiti.bpmn.model.*;
 import org.activiti.engine.*;
-import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.history.*;
 import org.activiti.engine.impl.HistoricProcessInstanceQueryProperty;
-import org.activiti.engine.impl.ProcessInstanceQueryProperty;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.identity.Authentication;
-import org.activiti.engine.impl.persistence.entity.IdentityLinkEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
-import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Comment;
-import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.activiti.image.ProcessDiagramGenerator;
-import org.activiti.image.impl.DefaultProcessDiagramGenerator;
-import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +46,8 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     private ManagementService managementService;
     @Autowired
     private ProcessDiagramGenerator processDiagramGenerator;
+    @Autowired
+    private SecurityUtil securityUtil;
 
     @Override
     public List<ActInstance> queryListAll(String approvalCode,String deploymentId) {
@@ -105,17 +98,42 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                     actTaskList.add(actTask);
                 }
             }
-        }else {
-             HistoricProcessInstance historicProcessInstance= historyService.createHistoricProcessInstanceQuery().processInstanceBusinessKey(instanceCode).singleResult();
-             if(historicProcessInstance!=null){
-                 processDefinitionId=historicProcessInstance.getProcessDefinitionId();
-                 ActivitiUtils.parseInstance(historicProcessInstance,actInstance);
-             }else {
-                 return null;
-             }
+            Object formObj= runtimeService.getVariable(processInstance.getId(),ActivitiUtils.INSTANCE_VAR_FORM);
+            if(formObj!=null){
+                actInstance.setForm(ActivitiUtils.convertJsonObjectToMap(formObj));
+            }
         }
 
-//        HistoricVariableInstance historyVar=historyService.createHistoricVariableInstanceQuery().processInstanceId(actInstance.getId()).singleResult();
+
+        HistoricProcessInstance historicProcessInstance= historyService.createHistoricProcessInstanceQuery().includeProcessVariables().processInstanceBusinessKey(instanceCode).singleResult();
+        if(historicProcessInstance!=null){
+            processDefinitionId=historicProcessInstance.getProcessDefinitionId();
+            ActivitiUtils.parseInstance(historicProcessInstance,actInstance);
+            List<HistoricVariableInstance> formList=historyService.createHistoricVariableInstanceQuery().processInstanceId(historicProcessInstance.getId()).variableName("form").list();
+            if(formList!=null && formList.size()>0){
+                Object formObj=formList.get(0).getValue();
+                actInstance.setForm(ActivitiUtils.convertJsonObjectToMap(formObj));
+            }
+            if(processInstance!=null){
+                if(processInstance.isSuspended()){
+                    actInstance.setStatus(ActStatus.INSTANCE_CANCELED);
+                }else {
+                    actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+                }
+            }else{
+                if(actInstance.getStatus()==null || actInstance.getStatus().length()==0){
+                    actInstance.setStatus(ActStatus.INSTANCE_DONE);
+                }
+            }
+
+        }else {
+            return null;
+        }
+
+        HistoricActivityInstanceQuery historyInstanceQuery = historyService.createHistoricActivityInstanceQuery().processInstanceId(actInstance.getId());
+        // 查询历史节点
+        List<HistoricActivityInstance> historicActivityInstanceList = historyInstanceQuery.orderByHistoricActivityInstanceStartTime().asc().list();
+        System.out.println("historicActivityInstanceList="+JSONObject.toJSONString(historicActivityInstanceList));
 
         List<Comment>  commentList=  taskService.getProcessInstanceComments(actInstance.getId());
         List<ActComment> actCommentList=new ArrayList<>();
@@ -159,6 +177,8 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 }
             }
         }
+
+
 
         return actInstance;
     }
@@ -264,15 +284,23 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     @Override
     public ActResult<Void> approve(String taskId, String instanceCode,String status, String comments, String userId, Map<String, Object> variables) {
         ActResult<Void> result=new ActResult<>();
-        TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode)
-                .taskId(taskId);
+        TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode).active().taskId(taskId);
         long num=taskQuery.count();
         if(num<1){
             ActivitiUtils.setFailResult(result,"无效参数");
             return result;
         }
+//        taskService.claim();
+
+        HistoricTaskInstance hiTask= historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        if(hiTask!=null){
+
+        }
+
         // 使用任务ID，查询任务对象，获取流程流程实例ID
-        Task task =taskQuery.taskId(taskId).singleResult();
+        securityUtil.logInAs(userId);
+        Task task =taskQuery.singleResult();
+        boolean isGroupUserTask=false;
         String taskUserId=task.getAssignee();
         if(taskUserId!=null && taskUserId.length()>0){//单个审批人
             if(!ActStatus.START.equals(status) && !taskUserId.equals(userId)){
@@ -280,7 +308,11 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 return result;
             }
         }else {
-            if(!ActStatus.START.equals(status)) {
+            List<Task> groupTask=taskService.createTaskQuery().taskCandidateUser(userId).taskId(taskId).list();
+            if(groupTask!=null && groupTask.size()>0){
+                task=groupTask.get(0);
+                isGroupUserTask=true;
+            }else  if(!ActStatus.START.equals(status)) {
                 ActivitiUtils.setFailResult(result, "当前流程节点没有设置审批人");
                 return result;
             }
@@ -294,6 +326,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             ActivitiUtils.setFailResult(result, "当前流程节点已挂起不能操作");
             return result;
         }
+
         /**
          * 注意：添加批注的时候，由于Activiti底层代码是使用： String userId =
          * Authentication.getAuthenticatedUserId(); CommentEntity comment = new
@@ -301,25 +334,30 @@ public class ActInstanceServiceImpl implements ActInstanceService {
          * 所有需要从Session中获取当前登录人，作为该任务的办理人（审核人），对应act_hi_comment表中的User_ID的字段，不过不添加审核人，该字段为null
          * 所以要求，添加配置执行使用Authentication.setAuthenticatedUserId();添加当前任务的审核人
          */
-        Authentication.setAuthenticatedUserId(userId);
+//        Authentication.setAuthenticatedUserId(userId);
 
+        if(isGroupUserTask){
+            taskService.claim(task.getId(),userId);
+        }
         // 使用任务ID，完成当前人的个人任务，同时流程变量
         String taskComment="["+status+"]";
         if(comments!=null){
             taskComment=taskComment+comments;
         }
         taskService.addComment(taskId, processInstanceId, taskComment);
-        taskService.setVariable(taskId,"status",status);
+        taskService.setVariable(taskId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
+        runtimeService.setVariable(processInstanceId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
+
         if(ActStatus.INSTANCE_APPROVED.equals(status) || ActStatus.START.equals(status)) {
-            taskService.complete(taskId, ActInstanceMetaInfoHelper.createInstanceVariables(userId, null, ActStatus.APPROVED, variables), true);
+            taskService.complete(taskId);
         }else if(ActStatus.INSTANCE_DELETED.equals(status)){
-//            managementService.executeCommand(new ActEndCmd(taskId));
             runtimeService.deleteProcessInstance(processInstanceId,comments);
         }else  if(ActStatus.INSTANCE_CANCELED.equals(status)){
             runtimeService.suspendProcessInstanceById(processInstanceId);
         }else if(ActStatus.INSTANCE_REJECTED.equals(status)){
             managementService.executeCommand(new ActStopCmd(taskId));
         }
+
 
 
 
@@ -339,7 +377,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
 
     @Override
-    public ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables) {
+    public ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables,Map<String,Object> form) {
         ActResult<String> result=new ActResult<>();
         long num= runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(instanceCode).processDefinitionKey(approvalCode).count();
         if(num>0){
@@ -349,20 +387,23 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
         Authentication.setAuthenticatedUserId(userId);
 
-        Map<String ,Object> instanceVariables= ActInstanceMetaInfoHelper.createInstanceVariables(userId,null,ActStatus.START,variables);
+//        Map<String ,Object> instanceVariables= ActInstanceMetaInfoHelper.createInstanceVariables(userId,null,ActStatus.START,variables);
 //        ProcessInstance processInstance= runtimeService.startProcessInstanceByKey(approvalCode, instanceCode, instanceVariables);
         ProcessInstance processInstance=runtimeService
                 .createProcessInstanceBuilder()
                 .processDefinitionKey(approvalCode)
-                .businessKey(instanceCode)
-                .variables(instanceVariables)
+                .businessKey(instanceCode).variable(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.START).variable(ActivitiUtils.INSTANCE_VAR_FORM, form)
                 .name(name)
                 .start();
+
         if(processInstance!=null) {
-            List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
+//            if(form!=null && !form.isEmpty()) {
+//                runtimeService.setVariable(processInstance.getId(), ActivitiUtils.INSTANCE_VAR_FORM, form);
+//            }
+         /*   List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
             if(taskList!=null && taskList.size()==1) {
                 approve(taskList.get(0).getId(), instanceCode,ActStatus.START, "提交", userId, variables);
-            }
+            }*/
             ActivitiUtils.setOkResult(result);
         }else {
             ActivitiUtils.setFailResult(result,"发起实例失败");
@@ -373,9 +414,9 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     @Override
     public List<ActTask> activeTask(String userId, String groupId) {
         List<ActTask> myTaskList=new ArrayList<>();
-        Authentication.setAuthenticatedUserId(userId);
+//        Authentication.setAuthenticatedUserId(userId);
 //        TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId);
-        TaskQuery taskQuery = taskService.createTaskQuery().taskAssignee(userId);
+        TaskQuery taskQuery = taskService.createTaskQuery().active().taskAssignee(userId);//.taskCandidateUser(userId,null);
         List<Task> tasks = taskQuery.orderByTaskCreateTime().desc().list();
         for (Task task : tasks) {
             String processInstanceId = task.getProcessInstanceId();
@@ -484,9 +525,10 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             }
         }
 
-        instanceQuery.finished();
+
+        instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().includeProcessVariables().or().variableValueEquals(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.INSTANCE_CANCELED).finished().endOr();
         long count=instanceQuery.count();
-        List<HistoricProcessInstance> hisList= instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().listPage((pageIndex-1)*pageSize,pageSize);
+        List<HistoricProcessInstance> hisList= instanceQuery.listPage((pageIndex-1)*pageSize,pageSize);
         PageDo<ActInstance> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
         result.setTotalNum(count);
         List<ActInstance> page=new ArrayList<>();
@@ -517,6 +559,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 instanceQuery.processInstanceBusinessKey(instanceCode.toString());
             }
         }
+        instanceQuery.active();
         long count=instanceQuery.count();
         List<ProcessInstance> processList=instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc()
         .listPage((pageIndex-1)*pageSize,pageSize);
@@ -526,7 +569,13 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         if(processList!=null) {
             for (int i = 0, k = processList.size(); i < k; i++) {
                 ProcessInstance instance = processList.get(i);
-                page.add(ActivitiUtils.parseInstance(instance, null));
+                ActInstance actInstance=ActivitiUtils.parseInstance(instance, null);
+                if(instance.isSuspended()){
+                    actInstance.setStatus(ActStatus.INSTANCE_CANCELED);
+                }else {
+                    actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+                }
+                page.add(actInstance);
             }
         }
         result.setPage(page);

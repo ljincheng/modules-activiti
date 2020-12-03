@@ -35,6 +35,26 @@
     <h1 th:text="${actInstance?.instanceName}"></h1>(<span th:text="${actInstance?.status}"></span>)<br><span th:text="${actInstance?.description}"></span>
 </div>
                 <div class="card-body table-responsive" id="datalist">
+                    <h4 class="panel-title">表单</h4>
+                    <table   class="table table-hover" >
+                        <thead>
+                        <tr>
+                            <th data-th-width="80px" th:text="#{i18n.serial}"></th>
+                            <th >name</th>
+                            <th >description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:each="modelObj,status: ${actInstance?.form}">
+                            <td th:text="${ status.index +1}"></td>
+                            <td th:text="${modelObj?.key}"></td>
+                            <td th:text="${modelObj?.value}"></td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
                     <h4 class="panel-title">当前审批节点</h4>
                     <table   class="table table-hover" >
                         <thead>

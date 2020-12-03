@@ -59,6 +59,9 @@ spring:
     db-history-used: true
     history-level: full
 
+logging:
+  config: classpath:logback.xml
+
 booktable:
   redisGroup: test
   shiro:
@@ -88,9 +91,10 @@ mybatis:
     default-statement-timeout: 3000
   mapper-locations: classpath*:/mapper/**/*.xml # mapper xml配置文件文件路径
 # 打印sql
-logging:
-  level:
-    cn.booktable.modules.dao : debug
+
+
+
+
 
 
 

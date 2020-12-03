@@ -38,6 +38,7 @@
                             <th >名称</th>
                             <th >instanceCode</th>
                             <th >startTime</th>
+                            <th >审批状态</th>
                             <th >DeploymentId</th>
                             <th data-th-width="120px" th:text="#{i18n.actions}">操作</th>
                         </tr>
@@ -51,6 +52,7 @@
                             <td th:text="${modelObj?.instanceName}"  ></td>
                             <td th:text="${modelObj?.instanceCode}" th:onclick="openDetail([[${modelObj?.instanceCode}]])" ></td>
                             <td th:text="${#dates.format(modelObj?.startTime,'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${modelObj?.status}"  ></td>
                             <td th:text="${modelObj?.deploymentId}" th:onclick="openDetail([[${modelObj?.instanceCode}]])" ></td>
 
                         </tr>

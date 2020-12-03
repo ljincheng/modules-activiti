@@ -105,7 +105,10 @@ public class ActInstanceController extends BaseController {
     public JsonView<String> create(@PathVariable("approvalCode") String approvalCode,String instanceCode, String name,String userId){
         JsonView<String> view=new JsonView<String>();
         Map<String,Object> variables=new HashMap<>();
-        ActResult<String> result=actInstanceService.create(approvalCode,instanceCode,userId,name,variables);
+        variables.put("formId","1000");
+        variables.put("type","test");
+
+        ActResult<String> result=actInstanceService.create(approvalCode,instanceCode,userId,name,null,variables);
         if(ActivitiUtils.isOkResult(result)) {
             ViewUtils.submitSuccess(view, messageSource);
         }else{

@@ -4,6 +4,9 @@ import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActStatus;
 import cn.booktable.activiti.entity.activiti.ActTask;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.nashorn.internal.ir.ObjectNode;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
@@ -16,8 +19,12 @@ import org.activiti.engine.task.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ActivitiUtils {
+
+    public static String INSTANCE_VAR_APPROVALSTATUS="ApprovalStatus";
+    public static String INSTANCE_VAR_FORM="form";
 
     /**
      * 获取流程走过的线
@@ -164,8 +171,14 @@ public class ActivitiUtils {
         actInstance.setId(instance.getId());
         actInstance.setUserId(instance.getStartUserId());
         actInstance.setDescription(instance.getDescription());
-        actInstance.setStatus(calculateInstanceStatus(instance));
-
+        actInstance.setVariables(instance.getProcessVariables());
+        Map<String,Object> instanceVar= actInstance.getVariables();
+        if(instanceVar!=null ){
+            Object approvalStatus=instanceVar.get(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS);
+            if(approvalStatus!=null){
+                actInstance.setStatus(approvalStatus.toString());
+            }
+        }
         return actInstance;
     }
 
@@ -186,7 +199,14 @@ public class ActivitiUtils {
         actInstance.setId(instance.getId());
         actInstance.setUserId(instance.getStartUserId());
         actInstance.setDescription(instance.getDescription());
-        actInstance.setStatus(calculateInstanceStatus(instance));
+        actInstance.setVariables(instance.getProcessVariables());
+        Map<String,Object> instanceVar= actInstance.getVariables();
+        if(instanceVar!=null ){
+            Object approvalStatus=instanceVar.get(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS);
+            if(approvalStatus!=null){
+                actInstance.setStatus(approvalStatus.toString());
+            }
+        }
         return actInstance;
     }
 
@@ -213,9 +233,6 @@ public class ActivitiUtils {
         return null;
     }
 
-    public static String calculateInstanceStatus(HistoricProcessInstance instance){
-            return ActStatus.INSTANCE_APPROVED ;//|| ActStatus.INSTANCE_REJECTED || ActStatus.INSTANCE_DELETED;
-    }
 
     public static ActTask parseTask(Task task){
         ActTask actTask = new ActTask();
@@ -237,5 +254,17 @@ public class ActivitiUtils {
         actTask.setProcessDefinitionId(task.getProcessDefinitionId());
         actTask.setProcessInstanceId(task.getProcessInstanceId());
         return actTask;
+    }
+
+    public static Map<String,Object> convertJsonObjectToMap(Object formObj){
+        if(formObj!=null ){
+           if (formObj instanceof Map) {
+                return (Map)formObj;
+            }else {
+               ObjectMapper mapper = new ObjectMapper();
+                return mapper.convertValue(formObj,Map.class);
+           }
+        }
+        return null;
     }
 }
