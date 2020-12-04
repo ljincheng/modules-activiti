@@ -1,17 +1,19 @@
 package cn.booktable.activiti.service.activiti.impl;
 
+import cn.booktable.activiti.core.ActErrorCodeEnum;
+import cn.booktable.activiti.core.ActStatus;
+import cn.booktable.activiti.core.ActStopCmd;
 import cn.booktable.activiti.core.SecurityUtil;
 import cn.booktable.activiti.entity.activiti.*;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
+import cn.booktable.activiti.utils.AssertUtils;
 import cn.booktable.core.page.PageDo;
-import com.alibaba.fastjson.JSONObject;
 import org.activiti.bpmn.model.*;
 import org.activiti.engine.*;
 import org.activiti.engine.history.*;
 import org.activiti.engine.impl.HistoricProcessInstanceQueryProperty;
 import org.activiti.engine.impl.RepositoryServiceImpl;
-import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
@@ -130,10 +132,10 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             return null;
         }
 
-        HistoricActivityInstanceQuery historyInstanceQuery = historyService.createHistoricActivityInstanceQuery().processInstanceId(actInstance.getId());
+//        HistoricActivityInstanceQuery historyInstanceQuery = historyService.createHistoricActivityInstanceQuery().processInstanceId(actInstance.getId());
         // 查询历史节点
-        List<HistoricActivityInstance> historicActivityInstanceList = historyInstanceQuery.orderByHistoricActivityInstanceStartTime().asc().list();
-        System.out.println("historicActivityInstanceList="+JSONObject.toJSONString(historicActivityInstanceList));
+//        List<HistoricActivityInstance> historicActivityInstanceList = historyInstanceQuery.orderByHistoricActivityInstanceStartTime().asc().list();
+//        logger.debug("historicActivityInstanceList="+JSONObject.toJSONString(historicActivityInstanceList));
 
         List<Comment>  commentList=  taskService.getProcessInstanceComments(actInstance.getId());
         List<ActComment> actCommentList=new ArrayList<>();
@@ -163,7 +165,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
         }
 
-        List<ActTimeline> historyTimelines=new ArrayList<>();
+//        List<ActTimeline> historyTimelines=new ArrayList<>();
         List<ActTimeline> timelines=new ArrayList<>();
         actInstance.setTimelineList(timelines);
         BpmnModel model = repositoryService.getBpmnModel(processDefinitionId);
@@ -211,16 +213,16 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             timeline.setUserId(userTask.getAssignee());
             timeline.setGroups(userTask.getCandidateGroups());
             timeline.setUsers(userTask.getCandidateUsers());
-            List<ActivitiListener> taskListenersList= userTask.getTaskListeners();
-            if(taskListenersList!=null && taskListenersList.size()>0)
-            {
-                for(int i=0,k=taskListenersList.size();i<k;i++){
-                    ActivitiListener listener=taskListenersList.get(i);
-                    String event= listener.getEvent();
-                    System.out.println("Event="+event);
-                }
-
-            }
+//            List<ActivitiListener> taskListenersList= userTask.getTaskListeners();
+//            if(taskListenersList!=null && taskListenersList.size()>0)
+//            {
+//                for(int i=0,k=taskListenersList.size();i<k;i++){
+//                    ActivitiListener listener=taskListenersList.get(i);
+//                    String event= listener.getEvent();
+//                    System.out.println("Event="+event);
+//                }
+//
+//            }
 
             //查看流向节点
             List<SequenceFlow> outgoFlowList= userTask.getOutgoingFlows();
@@ -237,7 +239,8 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 }
             }
         }
-        System.out.println("flowelement id:" + e.getId() + "  name:" + e.getName() + "   class:" + e.getClass().toString());
+        logger.debug("flowelement id:" + e.getId() + "  name:" + e.getName() + "   class:" + e.getClass().toString());
+//        System.out.println("flowelement id:" + e.getId() + "  name:" + e.getName() + "   class:" + e.getClass().toString());
         return timeline;
     }
 
@@ -284,18 +287,15 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     @Override
     public ActResult<Void> approve(String taskId, String instanceCode,String status, String comments, String userId, Map<String, Object> variables) {
         ActResult<Void> result=new ActResult<>();
+        AssertUtils.isNotBlank(taskId, ActErrorCodeEnum.EMPTY_TASKID);
+        AssertUtils.isNotBlank(instanceCode, ActErrorCodeEnum.EMPTY_INSTANCECODE);
+        AssertUtils.isNotBlank(status, ActErrorCodeEnum.EMPTY_APPROVALSTATUS);
+        AssertUtils.hasIn(status, ActErrorCodeEnum.EXCLUDE_APPROVALSTATUS,ActStatus.INSTANCE_APPROVED,ActStatus.INSTANCE_CANCELED,ActStatus.INSTANCE_DELETED);
+
         TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode).active().taskId(taskId);
         long num=taskQuery.count();
-        if(num<1){
-            ActivitiUtils.setFailResult(result,"无效参数");
-            return result;
-        }
-//        taskService.claim();
+        AssertUtils.isTrue(num>0, ActErrorCodeEnum.UNEXIST_ACTIVETASK);
 
-        HistoricTaskInstance hiTask= historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
-        if(hiTask!=null){
-
-        }
 
         // 使用任务ID，查询任务对象，获取流程流程实例ID
         securityUtil.logInAs(userId);
@@ -303,10 +303,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         boolean isGroupUserTask=false;
         String taskUserId=task.getAssignee();
         if(taskUserId!=null && taskUserId.length()>0){//单个审批人
-            if(!ActStatus.START.equals(status) && !taskUserId.equals(userId)){
-                ActivitiUtils.setFailResult(result,"审批人无权限操作当前流程");
-                return result;
-            }
+            AssertUtils.isTrue((ActStatus.START.equals(status) || taskUserId.equals(userId)), ActErrorCodeEnum.INVALID_APPROVALUSER);
         }else {
             List<Task> groupTask=taskService.createTaskQuery().taskCandidateUser(userId).taskId(taskId).list();
             if(groupTask!=null && groupTask.size()>0){
@@ -322,20 +319,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         String processInstanceId = task.getProcessInstanceId();
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
         boolean suspended = processInstance.isSuspended();
-        if(suspended) {
-            ActivitiUtils.setFailResult(result, "当前流程节点已挂起不能操作");
-            return result;
-        }
-
-        /**
-         * 注意：添加批注的时候，由于Activiti底层代码是使用： String userId =
-         * Authentication.getAuthenticatedUserId(); CommentEntity comment = new
-         * CommentEntity(); comment.setUserId(userId);
-         * 所有需要从Session中获取当前登录人，作为该任务的办理人（审核人），对应act_hi_comment表中的User_ID的字段，不过不添加审核人，该字段为null
-         * 所以要求，添加配置执行使用Authentication.setAuthenticatedUserId();添加当前任务的审核人
-         */
-//        Authentication.setAuthenticatedUserId(userId);
-
+        AssertUtils.isTrue(!suspended,ActErrorCodeEnum.INSTANCE_SUSPENDED);
         if(isGroupUserTask){
             taskService.claim(task.getId(),userId);
         }
@@ -344,32 +328,31 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         if(comments!=null){
             taskComment=taskComment+comments;
         }
-        taskService.addComment(taskId, processInstanceId, taskComment);
+        Comment myComment=  taskService.addComment(taskId, processInstanceId, taskComment);
         taskService.setVariable(taskId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
         runtimeService.setVariable(processInstanceId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
 
         if(ActStatus.INSTANCE_APPROVED.equals(status) || ActStatus.START.equals(status)) {
-            taskService.complete(taskId);
+            Object formObj= runtimeService.getVariable(processInstance.getId(),ActivitiUtils.INSTANCE_VAR_FORM);
+            if(formObj!=null) {
+                Map<String, Object> taskVar = new HashMap<>();
+                taskVar.put("form", ActivitiUtils.convertJsonObjectToMap(formObj));
+                taskService.complete(taskId, taskVar,true);
+            }else{
+                taskService.complete(taskId);
+            }
         }else if(ActStatus.INSTANCE_DELETED.equals(status)){
             runtimeService.deleteProcessInstance(processInstanceId,comments);
         }else  if(ActStatus.INSTANCE_CANCELED.equals(status)){
             runtimeService.suspendProcessInstanceById(processInstanceId);
         }else if(ActStatus.INSTANCE_REJECTED.equals(status)){
             managementService.executeCommand(new ActStopCmd(taskId));
+        }else {
+            ActivitiUtils.setFailResult(result,"无效的审批状态");
+            return result;
         }
 
-
-
-
-
-        /**
-         * 在完成任务之后，判断流程是否结束 如果流程结束了，更新请假单表的状态从1变成2（审核中-->审核完成）
-         */
-
-        long nextTaskNum=taskService.createTaskQuery().processInstanceId(processInstanceId).processInstanceBusinessKey(instanceCode).count();
-        if(nextTaskNum==0){//已完成任务
-          //  managementService.executeCommand(new ActEndStatusCmd(taskId,status));
-        }
+        ActivitiUtils.setOkResult(result);
         return result;
     }
 
@@ -380,30 +363,16 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     public ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables,Map<String,Object> form) {
         ActResult<String> result=new ActResult<>();
         long num= runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(instanceCode).processDefinitionKey(approvalCode).count();
-        if(num>0){
-            ActivitiUtils.setFailResult(result,"审批实例编码已被使用过");
-            return result;
-        }
-
-        Authentication.setAuthenticatedUserId(userId);
-
-//        Map<String ,Object> instanceVariables= ActInstanceMetaInfoHelper.createInstanceVariables(userId,null,ActStatus.START,variables);
-//        ProcessInstance processInstance= runtimeService.startProcessInstanceByKey(approvalCode, instanceCode, instanceVariables);
+        AssertUtils.isTrue(num==0, ActErrorCodeEnum.EXIST_INSTANCECODE);
+        securityUtil.logInAs(userId);
+//        Authentication.setAuthenticatedUserId(userId);
         ProcessInstance processInstance=runtimeService
                 .createProcessInstanceBuilder()
                 .processDefinitionKey(approvalCode)
                 .businessKey(instanceCode).variable(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.START).variable(ActivitiUtils.INSTANCE_VAR_FORM, form)
                 .name(name)
                 .start();
-
         if(processInstance!=null) {
-//            if(form!=null && !form.isEmpty()) {
-//                runtimeService.setVariable(processInstance.getId(), ActivitiUtils.INSTANCE_VAR_FORM, form);
-//            }
-         /*   List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstance.getId()).processInstanceBusinessKey(instanceCode).list();
-            if(taskList!=null && taskList.size()==1) {
-                approve(taskList.get(0).getId(), instanceCode,ActStatus.START, "提交", userId, variables);
-            }*/
             ActivitiUtils.setOkResult(result);
         }else {
             ActivitiUtils.setFailResult(result,"发起实例失败");
@@ -413,10 +382,11 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
     @Override
     public List<ActTask> activeTask(String userId, String groupId) {
+        securityUtil.logInAs(userId);
         List<ActTask> myTaskList=new ArrayList<>();
 //        Authentication.setAuthenticatedUserId(userId);
-//        TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId);
-        TaskQuery taskQuery = taskService.createTaskQuery().active().taskAssignee(userId);//.taskCandidateUser(userId,null);
+        TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId);
+//        TaskQuery taskQuery = taskService.createTaskQuery().active().taskAssignee(userId);//.taskCandidateUser(userId,null);
         List<Task> tasks = taskQuery.orderByTaskCreateTime().desc().list();
         for (Task task : tasks) {
             String processInstanceId = task.getProcessInstanceId();

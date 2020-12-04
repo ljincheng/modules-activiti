@@ -1,7 +1,6 @@
 package cn.booktable.activiti.service.activiti.impl;
 
 import cn.booktable.activiti.entity.activiti.ActModel;
-import cn.booktable.activiti.entity.activiti.ActProcessBo;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
@@ -18,7 +17,6 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -326,7 +324,7 @@ public class ActModelServiceImpl implements ActModelService{
             query.processDefinitionKey(key);
         }
         // 执行查询
-        List<ProcessDefinition> list = query.orderByProcessDefinitionVersion().desc().list();
+        List<ProcessDefinition> list = query.latestVersion().orderByProcessDefinitionVersion().desc().list();
         List<ActModel> result=new ArrayList<>();
 
         if(list!=null) {

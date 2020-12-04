@@ -1,4 +1,4 @@
-package cn.booktable.activiti.service.activiti.impl;
+package cn.booktable.activiti.core;
 
 
 import org.activiti.bpmn.model.FlowElement;

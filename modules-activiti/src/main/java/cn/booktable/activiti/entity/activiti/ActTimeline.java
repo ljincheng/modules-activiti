@@ -18,4 +18,7 @@ public class ActTimeline {
     private List<String> groups;
     private List<ActTimeline> outgoing;
     private List<ActComment> comments;
+
+    private String userName;
+    private List<String> userNames;
 }

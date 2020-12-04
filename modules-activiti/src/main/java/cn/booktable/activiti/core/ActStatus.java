@@ -1,4 +1,4 @@
-package cn.booktable.activiti.entity.activiti;
+package cn.booktable.activiti.core;
 
 /**
  * @author ljc

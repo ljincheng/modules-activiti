@@ -1,4 +1,4 @@
-package cn.booktable.activiti.service.activiti.impl;
+package cn.booktable.activiti.core;
 
 import org.activiti.api.runtime.shared.identity.UserGroupManager;
 import org.activiti.core.common.spring.identity.ActivitiUserGroupManagerImpl;

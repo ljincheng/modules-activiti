@@ -1,4 +1,4 @@
-package cn.booktable.activiti.service.activiti.impl;
+package cn.booktable.activiti.core;
 
 import com.alibaba.fastjson.JSON;
 import org.activiti.engine.delegate.DelegateTask;

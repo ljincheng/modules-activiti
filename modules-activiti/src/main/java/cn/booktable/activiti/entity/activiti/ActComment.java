@@ -14,4 +14,5 @@ public class ActComment {
     private String status;
     private String message;
 
+    private String userName;
 }

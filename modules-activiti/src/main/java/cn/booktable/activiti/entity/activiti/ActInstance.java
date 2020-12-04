@@ -25,4 +25,6 @@ public class ActInstance {
     private Map<String,Object> form;
     private Map<String, Object> variables;
 
+    //===============
+    private String userName;
 }

@@ -1,6 +1,12 @@
 package cn.booktable.activiti.service.activiti;
 
-public interface ActUserService {
+import java.util.List;
+import java.util.Map;
 
-    ActUser findUser(String userId);
+public interface ActUserService {
+ 
+
+    Map<String,String> mapUserName(List<String> userId);
+
+
 }

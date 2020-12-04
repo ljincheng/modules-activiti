@@ -31,5 +31,5 @@ public class ActTask {
     private ActInstance instance;
     private List<ActComment> comments;
 
-
+    private String userName;
 }

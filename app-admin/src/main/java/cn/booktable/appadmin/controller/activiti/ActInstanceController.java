@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +84,6 @@ public class ActInstanceController extends BaseController {
         return view;
     }
 
-
     @GetMapping("/list")
     public ModelAndView list(String approvalCode,String deploymentId){
         ModelAndView view=new ModelAndView("activiti/instance/list");
@@ -102,11 +102,17 @@ public class ActInstanceController extends BaseController {
 
 
     @GetMapping("/create/{approvalCode}")
-    public JsonView<String> create(@PathVariable("approvalCode") String approvalCode,String instanceCode, String name,String userId){
+    public JsonView<String> create(@PathVariable("approvalCode") String approvalCode, String instanceCode, String name, String userId, BigDecimal totalAmt){
         JsonView<String> view=new JsonView<String>();
         Map<String,Object> variables=new HashMap<>();
         variables.put("formId","1000");
         variables.put("type","test");
+
+        if(totalAmt!=null){
+            variables.put("totalAmt",totalAmt);
+        }else {
+            variables.put("totalAmt",new BigDecimal("1999.00"));
+        }
 
         ActResult<String> result=actInstanceService.create(approvalCode,instanceCode,userId,name,null,variables);
         if(ActivitiUtils.isOkResult(result)) {

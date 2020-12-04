@@ -1,10 +1,7 @@
 package cn.booktable.activiti.core;
 
-import cn.booktable.activiti.service.activiti.impl.ActivitiUserDetailsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,18 +17,16 @@ public class SecurityUtil {
 
     private Logger logger = LoggerFactory.getLogger(SecurityUtil.class);
 
-//    @Autowired
-//    private UserDetailsService userDetailsService;
 
-    @Bean
+//    @Bean
     public UserDetailsService activitiUserDetailsService() {
 
-        return new ActivitiUserDetailsManager(null);
+        return new ActUserDetailsManager();
     }
 
     public void logInAs(String username) {
 
-        UserDetails user = activitiUserDetailsService().loadUserByUsername(username);
+            UserDetails user = activitiUserDetailsService().loadUserByUsername(username);
         if (user == null) {
             throw new IllegalStateException("User " + username + " doesn't exist, please provide a valid user");
         }

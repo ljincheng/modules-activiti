@@ -2,11 +2,9 @@ package cn.booktable.activiti.utils;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
-import cn.booktable.activiti.entity.activiti.ActStatus;
+import cn.booktable.activiti.core.ActStatus;
 import cn.booktable.activiti.entity.activiti.ActTask;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.nashorn.internal.ir.ObjectNode;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
