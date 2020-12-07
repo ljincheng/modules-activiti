@@ -14,6 +14,7 @@ public class ActInstance {
     private String instanceName;
     private String instanceCode;
     private Date   startTime;
+    private Date   endTime;
     private String deploymentId;
     private String userId;
     private String status;

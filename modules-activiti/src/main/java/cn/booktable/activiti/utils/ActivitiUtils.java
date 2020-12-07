@@ -10,6 +10,7 @@ import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Comment;
@@ -193,6 +194,7 @@ public class ActivitiUtils {
         actInstance.setApprovalName(instance.getProcessDefinitionName());
         actInstance.setInstanceName(instance.getName());
         actInstance.setStartTime(instance.getStartTime());
+        actInstance.setEndTime(instance.getEndTime());
         actInstance.setDeploymentId(instance.getDeploymentId());
         actInstance.setId(instance.getId());
         actInstance.setUserId(instance.getStartUserId());
@@ -251,6 +253,30 @@ public class ActivitiUtils {
         actTask.setParentTaskId(task.getParentTaskId());
         actTask.setProcessDefinitionId(task.getProcessDefinitionId());
         actTask.setProcessInstanceId(task.getProcessInstanceId());
+        return actTask;
+    }
+
+    public static ActTask parseTask(HistoricTaskInstance task){
+        ActTask actTask = new ActTask();
+        actTask.setId(task.getId());
+        actTask.setName(task.getName());
+        actTask.setOwner(task.getOwner());
+        actTask.setAssignee(task.getAssignee());
+        actTask.setCategory(task.getCategory());
+        actTask.setClaimTime(task.getClaimTime());
+        actTask.setCreateTime(task.getCreateTime());
+        actTask.setDescription(task.getDescription());
+        actTask.setDueDate(task.getDueDate());
+        actTask.setExecutionId(task.getExecutionId());
+        actTask.setFormKey(task.getFormKey());
+        actTask.setProcessVariables(task.getProcessVariables());
+        actTask.setTaskLocalVariables(task.getTaskLocalVariables());
+        actTask.setTenantId(task.getTenantId());
+        actTask.setParentTaskId(task.getParentTaskId());
+        actTask.setProcessDefinitionId(task.getProcessDefinitionId());
+        actTask.setProcessInstanceId(task.getProcessInstanceId());
+        actTask.setEndTime(task.getEndTime());
+        actTask.setStartTime(task.getStartTime());
         return actTask;
     }
 

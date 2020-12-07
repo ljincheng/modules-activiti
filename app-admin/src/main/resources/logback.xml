@@ -10,7 +10,7 @@
 		<AppenderRef ref="Console"/>
 	</Logger>
 	<Logger name="javax.activation.level" level="INFO"/>
-	<Root level="debug">
+	<Root level="INFO">
 		<AppenderRef ref="Console"/>
 	</Root>
 </Loggers>

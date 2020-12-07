@@ -27,6 +27,8 @@ public class ActTask {
     private Map<String,Object> taskLocalVariables;
     private Map<String,Object> processVariables;
     private Date claimTime;
+    private Date startTime;
+    private Date endTime;
 
     private ActInstance instance;
     private List<ActComment> comments;

@@ -15,6 +15,8 @@ import org.activiti.engine.history.*;
 import org.activiti.engine.impl.HistoricProcessInstanceQueryProperty;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Comment;
@@ -290,7 +292,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         AssertUtils.isNotBlank(taskId, ActErrorCodeEnum.EMPTY_TASKID);
         AssertUtils.isNotBlank(instanceCode, ActErrorCodeEnum.EMPTY_INSTANCECODE);
         AssertUtils.isNotBlank(status, ActErrorCodeEnum.EMPTY_APPROVALSTATUS);
-        AssertUtils.hasIn(status, ActErrorCodeEnum.EXCLUDE_APPROVALSTATUS,ActStatus.INSTANCE_APPROVED,ActStatus.INSTANCE_CANCELED,ActStatus.INSTANCE_DELETED);
+        AssertUtils.hasIn(status, ActErrorCodeEnum.EXCLUDE_APPROVALSTATUS,ActStatus.INSTANCE_APPROVED,ActStatus.INSTANCE_REJECTED,ActStatus.INSTANCE_CANCELED,ActStatus.INSTANCE_DELETED);
 
         TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode).active().taskId(taskId);
         long num=taskQuery.count();
@@ -381,27 +383,85 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     }
 
     @Override
-    public List<ActTask> activeTask(String userId, String groupId) {
+    public PageDo<ActTask> activeTask(String userId, String groupId,int pageIndex,int pageSize,Map<String,Object> selected) {
         securityUtil.logInAs(userId);
         List<ActTask> myTaskList=new ArrayList<>();
-//        Authentication.setAuthenticatedUserId(userId);
-        TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId);
-//        TaskQuery taskQuery = taskService.createTaskQuery().active().taskAssignee(userId);//.taskCandidateUser(userId,null);
-        List<Task> tasks = taskQuery.orderByTaskCreateTime().desc().list();
-        for (Task task : tasks) {
-            String processInstanceId = task.getProcessInstanceId();
-            ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active().singleResult();
-            if (processInstance == null) {
-                continue;
+        TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId).active();
+        if(selected!=null){
+            Object approvalCode=selected.get("approvalCode");
+            Object instanceCode=selected.get("instanceCode");
+            if(approvalCode!=null && !approvalCode.toString().isEmpty()){
+                taskQuery.processDefinitionKey(approvalCode.toString());
+            }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
+                taskQuery.processInstanceBusinessKey(instanceCode.toString());
             }
-            ActTask actTask=ActivitiUtils.parseTask(task);
-            actTask.setInstance(ActivitiUtils.parseInstance(processInstance,null));
-            myTaskList.add(actTask);
-
         }
-        return myTaskList;
+        long count=taskQuery.count();
+        PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
+        result.setTotalNum(count);
+        if(count>0) {
+            List<Task> tasks = taskQuery.orderByTaskCreateTime().desc().listPage((pageIndex - 1) * pageSize, pageSize);
+            for (Task task : tasks) {
+                String processInstanceId = task.getProcessInstanceId();
+                ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active().singleResult();
+                if (processInstance == null) {
+                    continue;
+                }
+                ActTask actTask = ActivitiUtils.parseTask(task);
+                actTask.setInstance(ActivitiUtils.parseInstance(processInstance, null));
+                myTaskList.add(actTask);
+
+            }
+            result.setPage(myTaskList);
+        }
+        return result;
     }
 
+    @Override
+    public PageDo<ActTask> finishedTask(String userId, String groupId,int pageIndex,int pageSize,Map<String,Object> selected) {
+        PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
+        securityUtil.logInAs(userId);
+        HistoricTaskInstanceQuery instanceQuery= historyService.createHistoricTaskInstanceQuery();
+        instanceQuery.taskAssignee(userId);
+//        HistoricProcessInstanceQuery instanceQuery= historyService.createHistoricProcessInstanceQuery();
+//        instanceQuery.involvedUser(userId);
+        if(selected!=null){
+            Object approvalCode=selected.get("approvalCode");
+            Object instanceCode=selected.get("instanceCode");
+            if(approvalCode!=null && !approvalCode.toString().isEmpty()){
+                instanceQuery.processDefinitionKey(approvalCode.toString());
+            }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
+                instanceQuery.processInstanceBusinessKey(instanceCode.toString());
+            }
+        }
+
+        instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().finished();
+        long count=instanceQuery.count();
+        result.setTotalNum(count);
+        if(count>0) {
+            List<HistoricTaskInstance> hisList = instanceQuery.listPage((pageIndex - 1) * pageSize, pageSize);
+            List<ActTask> page = new ArrayList<>();
+            if (hisList != null) {
+                for (int i = 0, k = hisList.size(); i < k; i++) {
+                    HistoricTaskInstance task = hisList.get(i);
+                    String processInstanceId = task.getProcessInstanceId();
+                    HistoricProcessInstance processInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).includeProcessVariables().singleResult();
+                    if (processInstance == null) {
+                        continue;
+                    }
+                    ActTask actTask = ActivitiUtils.parseTask(task);
+                    ActInstance actInstance=new ActInstance();
+                    actTask.setInstance(ActivitiUtils.parseInstance(processInstance, actInstance));
+                    if(processInstance.getEndTime()==null && !ActStatus.INSTANCE_CANCELED.equals( actInstance.getStatus())){
+                        actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+                    }
+                    page.add(actTask);
+                }
+            }
+            result.setPage(page);
+        }
+        return result;
+    }
 
     @Override
     public InputStream image(String instanceCode) {
@@ -478,23 +538,19 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     }
 
     @Override
-    public PageDo<ActInstance> historyPageList(int pageIndex, int pageSize, Map<String, Object> selected) {
+    public PageDo<ActInstance> createInstanceFinishedPageList(int pageIndex, int pageSize,String createUserID, Map<String, Object> selected) {
         HistoricProcessInstanceQuery instanceQuery= historyService.createHistoricProcessInstanceQuery();
+        instanceQuery.startedBy(createUserID);
         if(selected!=null){
-            Object userId=selected.get("userId");
             Object approvalCode=selected.get("approvalCode");
             Object instanceCode=selected.get("instanceCode");
 
-            if(userId!=null && !userId.toString().isEmpty()){
-                instanceQuery.involvedUser(userId.toString());
-            }
             if(approvalCode!=null && !approvalCode.toString().isEmpty()){
                 instanceQuery.processDefinitionKey(approvalCode.toString());
             }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
                 instanceQuery.processInstanceBusinessKey(instanceCode.toString());
             }
         }
-
 
         instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().includeProcessVariables().or().variableValueEquals(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.INSTANCE_CANCELED).finished().endOr();
         long count=instanceQuery.count();
@@ -513,16 +569,12 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     }
 
     @Override
-    public PageDo<ActInstance> processPageList(int pageIndex, int pageSize, Map<String, Object> selected) {
+    public PageDo<ActInstance> createInstanceActivePageList(int pageIndex, int pageSize,String createUserId, Map<String, Object> selected) {
         ProcessInstanceQuery instanceQuery=runtimeService.createProcessInstanceQuery();
+        instanceQuery.startedBy(createUserId);
         if(selected!=null){
-            Object userId=selected.get("userId");
             Object approvalCode=selected.get("approvalCode");
             Object instanceCode=selected.get("instanceCode");
-
-            if(userId!=null && !userId.toString().isEmpty()){
-                instanceQuery.involvedUser(userId.toString());
-            }
             if(approvalCode!=null && !approvalCode.toString().isEmpty()){
                 instanceQuery.processDefinitionKey(approvalCode.toString());
             }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
@@ -549,6 +601,58 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             }
         }
         result.setPage(page);
+        return result;
+    }
+
+    @Override
+    public PageDo<ActInstance> createInstanceListPage(int pageIndex, int pageSize, String createUserId, Map<String, Object> selected) {
+        HistoricProcessInstanceQuery instanceQuery= historyService.createHistoricProcessInstanceQuery();
+        instanceQuery.startedBy(createUserId);
+        if(selected!=null){
+            Object approvalCode=selected.get("approvalCode");
+            Object instanceCode=selected.get("instanceCode");
+
+            if(approvalCode!=null && !approvalCode.toString().isEmpty()){
+                instanceQuery.processDefinitionKey(approvalCode.toString());
+            }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
+                instanceQuery.processInstanceBusinessKey(instanceCode.toString());
+            }
+        }
+        instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().includeProcessVariables();
+        long count=instanceQuery.count();
+        List<HistoricProcessInstance> hisList= instanceQuery.listPage((pageIndex-1)*pageSize,pageSize);
+        PageDo<ActInstance> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
+        result.setTotalNum(count);
+        List<ActInstance> page=new ArrayList<>();
+        if(hisList!=null) {
+            for (int i = 0, k = hisList.size(); i < k; i++) {
+                HistoricProcessInstance instance = hisList.get(i);
+                ActInstance actInstance=ActivitiUtils.parseInstance(instance, null);
+                if(instance.getEndTime()==null && !ActStatus.INSTANCE_CANCELED.equals( actInstance.getStatus())){
+                    actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+                }
+                page.add(actInstance);
+            }
+        }
+        result.setPage(page);
+        return result;
+    }
+
+    @Override
+    public List<ActProcessDefinition> processDefinitionList(){
+        List<ActProcessDefinition> result=new ArrayList<>();
+        List<ProcessDefinition> definitionList= repositoryService.createProcessDefinitionQuery().orderByProcessDefinitionKey().asc().list();
+        if(definitionList!=null){
+            for(int i=0,k=definitionList.size();i<k;i++){
+                ProcessDefinition p=definitionList.get(i);
+                ActProcessDefinition myP=new ActProcessDefinition();
+                myP.setCategory(p.getCategory());
+                myP.setName(p.getName());
+                myP.setKey(p.getKey());
+                myP.setId(p.getId());
+                result.add(myP);
+            }
+        }
         return result;
     }
 }

@@ -1,9 +1,6 @@
 package cn.booktable.appadmin.controller.activiti;
 
-import cn.booktable.activiti.entity.activiti.ActInstance;
-import cn.booktable.activiti.entity.activiti.ActModel;
-import cn.booktable.activiti.entity.activiti.ActResult;
-import cn.booktable.activiti.entity.activiti.ActTask;
+import cn.booktable.activiti.entity.activiti.*;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
@@ -65,20 +62,24 @@ public class ActInstanceController extends BaseController {
     public ModelAndView historyListData(String approvalCode,String userId,Boolean isHistory,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
         ModelAndView view=new ModelAndView("activiti/instance/historyList_table");
         Map<String,Object> selected=new HashMap<>();
-        if(userId!=null && !userId.isEmpty()){
-            selected.put("userId",userId);
-        }else{
-            selected.put("userId",currentUser().getId().toString());
+
+        if(userId==null || userId.isEmpty()){
+            userId=currentUser().getId().toString();
         }
+        selected.put("userId",userId);
         if(StringUtils.isNotBlank(approvalCode))
         {
             selected.put("approvalCode",approvalCode);
         }
         PageDo<ActInstance> instanceList =null;
-        if(isHistory!=null && isHistory.booleanValue()) {
-            instanceList = actInstanceService.historyPageList(pageIndex, pageSize, selected);
-        }else{
-            instanceList=actInstanceService.processPageList(pageIndex,pageSize,selected);
+        if(isHistory==null){
+            instanceList=actInstanceService.createInstanceListPage(pageIndex,pageSize,userId,null);
+        }else {
+            if (isHistory) {
+                instanceList = actInstanceService.createInstanceFinishedPageList(pageIndex, pageSize,userId, selected);
+            } else {
+                instanceList = actInstanceService.createInstanceActivePageList(pageIndex, pageSize,userId, selected);
+            }
         }
         view.addObject("pagedata", instanceList);
         return view;
@@ -101,18 +102,19 @@ public class ActInstanceController extends BaseController {
     }
 
 
-    @GetMapping("/create/{approvalCode}")
-    public JsonView<String> create(@PathVariable("approvalCode") String approvalCode, String instanceCode, String name, String userId, BigDecimal totalAmt){
+    @RequestMapping("/create/{approvalCode}")
+    public JsonView<String> create(@PathVariable("approvalCode") String approvalCode, String instanceCode, String name,   BigDecimal totalAmt,HttpServletRequest request){
         JsonView<String> view=new JsonView<String>();
-        Map<String,Object> variables=new HashMap<>();
-        variables.put("formId","1000");
-        variables.put("type","test");
+        Map<String,Object> variables=getRequestToParamMap(request);
+       variables.remove("instanceCode");
+       variables.remove("name");
 
         if(totalAmt!=null){
             variables.put("totalAmt",totalAmt);
         }else {
             variables.put("totalAmt",new BigDecimal("1999.00"));
         }
+        String userId=currentUser().getId().toString();
 
         ActResult<String> result=actInstanceService.create(approvalCode,instanceCode,userId,name,null,variables);
         if(ActivitiUtils.isOkResult(result)) {
@@ -144,24 +146,27 @@ public class ActInstanceController extends BaseController {
         return view;
     }
 
-    @GetMapping("/myTask")
-    public JsonView<List<ActTask>> myTask( String userId,String groupId){
-        JsonView<List<ActTask>> view=new JsonView<List<ActTask>>();
-        Map<String,Object> param=new HashMap<>();
-        param.put("flag",'Y');
-        List<ActTask> taskList= actInstanceService.activeTask(userId,groupId);
 
-        ViewUtils.submitSuccess(view,messageSource);
-        view.setData(taskList);
-
+    @GetMapping("/activeTask")
+    public ModelAndView activeTask(String groupId,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize,HttpServletRequest request){
+        ModelAndView view=new ModelAndView("activiti/instance/activeTask");
+        String userId=currentUser().getId().toString();
+        Map<String,Object> selected=getRequestToParamMap(request);
+        PageDo<ActTask> pagedata= actInstanceService.activeTask(userId,groupId,pageIndex,pageSize,selected);
+//        view.addObject("taskList",taskList);
+        view.addObject("pagedata",pagedata);
+        List<ActProcessDefinition> definitionList=actInstanceService.processDefinitionList();
+        view.addObject("definitionList",definitionList);
         return view;
     }
 
-    @GetMapping("/activeTask")
-    public ModelAndView activeTask(String userId,String groupId){
-        ModelAndView view=new ModelAndView("activiti/instance/activeTask");
-        List<ActTask> taskList= actInstanceService.activeTask(userId,groupId);
-        view.addObject("taskList",taskList);
+    @PostMapping("/finishedTask")
+    public ModelAndView finishedTask(@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
+        ModelAndView view=new ModelAndView("activiti/instance/finishedTask");
+        String userId=currentUser().getId().toString();
+        String groupId=null;
+        PageDo<ActTask> taskList= actInstanceService.finishedTask(userId,groupId,pageIndex,pageSize,null);
+        view.addObject("pagedata", taskList);
         return view;
     }
 

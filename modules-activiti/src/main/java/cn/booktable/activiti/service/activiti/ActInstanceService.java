@@ -1,6 +1,7 @@
 package cn.booktable.activiti.service.activiti;
 
 import cn.booktable.activiti.entity.activiti.ActInstance;
+import cn.booktable.activiti.entity.activiti.ActProcessDefinition;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.entity.activiti.ActTask;
 import cn.booktable.core.page.PageDo;
@@ -45,27 +46,50 @@ public interface ActInstanceService {
      * @param groupId
      * @return
      */
-    List<ActTask> activeTask(String userId,String groupId);
+    PageDo<ActTask> activeTask(String userId,String groupId,int pageIndex,int pageSize,Map<String,Object> selected);
+
+    /**
+     * 获取已办任务
+     * @param userId
+     * @param groupId
+     * @return
+     */
+    PageDo<ActTask> finishedTask(String userId,String groupId,int pageIndex,int pageSize,Map<String,Object> selected);
 
 
     public InputStream image(String instanceCode);
 
 
     /**
-     * 历史审批流程
+     * 创建人申请审批已完成流程
      * @param pageIndex
      * @param pageSize
+     * @param createUserId 申请流程创建人
      * @param selected
      * @return
      */
-    PageDo<ActInstance> historyPageList(int pageIndex,int pageSize,Map<String,Object> selected);
+    PageDo<ActInstance> createInstanceFinishedPageList(int pageIndex,int pageSize,String createUserId,Map<String,Object> selected);
 
     /**
-     * 审批中的流程
+     * 创建人申请审批中的流程
      * @param pageIndex
      * @param pageSize
+     * @param createUserId 申请流程创建人
      * @param selected
      * @return
      */
-    PageDo<ActInstance> processPageList(int pageIndex,int pageSize,Map<String,Object> selected);
+    PageDo<ActInstance> createInstanceActivePageList(int pageIndex,int pageSize,String createUserId,Map<String,Object> selected);
+
+
+    /**
+     * 我的申请流程列表
+     * @param pageIndex
+     * @param pageSize
+     * @param createUserId
+     * @param selected
+     * @return
+     */
+    PageDo<ActInstance> createInstanceListPage(int pageIndex,int pageSize,String createUserId,Map<String,Object> selected);
+
+    List<ActProcessDefinition> processDefinitionList();
 }
