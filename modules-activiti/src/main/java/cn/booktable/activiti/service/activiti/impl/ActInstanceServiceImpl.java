@@ -354,8 +354,11 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             ActivitiUtils.setFailResult(result,"无效的审批状态");
             return result;
         }
-
-        actApproveEventHandler.notice(null,null,status);
+        try{
+            actApproveEventHandler.notice(ActivitiUtils.parseInstance(processInstance,null),ActivitiUtils.parseTask(task),status);
+        }catch (Exception ex){
+            logger.error("审批通知异常",ex);
+        }
         ActivitiUtils.setOkResult(result);
         return result;
     }
