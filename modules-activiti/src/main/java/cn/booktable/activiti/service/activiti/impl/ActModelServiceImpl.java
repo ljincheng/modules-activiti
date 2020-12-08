@@ -1,9 +1,12 @@
 package cn.booktable.activiti.service.activiti.impl;
 
+import cn.booktable.activiti.core.ActErrorCodeEnum;
 import cn.booktable.activiti.entity.activiti.ActModel;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.service.activiti.ActModelService;
 import cn.booktable.activiti.utils.ActivitiUtils;
+import cn.booktable.activiti.utils.AssertUtils;
+import cn.booktable.util.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,6 +41,9 @@ public class ActModelServiceImpl implements ActModelService{
     public ActResult<String> create(ActModel model) {
         ActResult<String> result=new ActResult<>();
         try {
+            long hiCount= repositoryService.createModelQuery().modelKey(model.getKey()).count();
+            AssertUtils.isTrue(hiCount==0,ActErrorCodeEnum.EXIST_APPROVALCODE);
+
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode editorNode = objectMapper.createObjectNode();
             editorNode.put("id", "canvas");
@@ -48,6 +54,7 @@ public class ActModelServiceImpl implements ActModelService{
 
             ObjectNode modelObjectNode = objectMapper.createObjectNode();
             modelObjectNode.put(MODEL_NAME, model.getName());
+            modelObjectNode.put(MODEL_NAMESPACE, model.getCategory());
             modelObjectNode.put(MODEL_REVISION, 1);
             String description = model.getDescription() == null ? "" : model.getDescription();
             modelObjectNode.put(MODEL_DESCRIPTION, description);
@@ -82,6 +89,7 @@ public class ActModelServiceImpl implements ActModelService{
             modelJson.put(MODEL_NAME, actModel.getName());
             modelJson.put(MODEL_DESCRIPTION, actModel.getDescription());
             modelJson.put(MODEL_PROCESS_ID, model.getKey());
+            modelJson.put(MODEL_NAMESPACE,model.getCategory());
             model.setMetaInfo(modelJson.toString());
             model.setVersion((model.getVersion()==null?0:model.getVersion())+1);
           //  model.setName(actModel.getName());
@@ -118,19 +126,18 @@ public class ActModelServiceImpl implements ActModelService{
     }
 
     @Override
-    public ActResult<Boolean> delete(String modelId) {
-        ActResult<Boolean> result=new ActResult<>();
+    public void delete(String modelId,boolean enforce) {
         Model model = repositoryService.getModel(modelId);
-        if(model!=null) {
-            repositoryService.deleteModel(modelId);
-        }else {
-            ActivitiUtils.setFailResult(result,"找不到数据");
+        AssertUtils.notNull(model, ActErrorCodeEnum.UNEXIST_MODEL);
+        if(!enforce) {
+            long instanceNum = runtimeService.createProcessInstanceQuery().processDefinitionKey(model.getKey()).count();
+            AssertUtils.isTrue(instanceNum == 0, ActErrorCodeEnum.NOTEMPTY_MODEL_INSTANCE);
         }
-        return result;
+        repositoryService.deleteModel(modelId);
     }
 
     @Override
-    public List<ActModel> listAll(String key,String name) {
+    public List<ActModel> listAll(String key,String name,String category) {
         List<ActModel> result=new ArrayList<>();
         ModelQuery modelQuery = repositoryService.createModelQuery();
         modelQuery.orderByLastUpdateTime().desc();
@@ -141,6 +148,9 @@ public class ActModelServiceImpl implements ActModelService{
         }
         if (name!=null && name.trim().length()>0) {
             modelQuery.modelNameLike("%" + name + "%");
+        }
+        if(StringUtils.isNotBlank(category)){
+            modelQuery.modelCategory(category);
         }
 
         List<Model> lstRecords = modelQuery.list();
@@ -191,10 +201,12 @@ public class ActModelServiceImpl implements ActModelService{
                   ObjectNode propertiesObj=(ObjectNode)propertiesNode;
                   propertiesObj.put(MODEL_PROCESS_ID,model.getKey());
                   propertiesObj.put(MODEL_NAME,model.getName());
+                  propertiesObj.put(MODEL_NAMESPACE,model.getCategory());
               }else {
                   ObjectNode properties=objectMapper.createObjectNode();
                   properties.put(MODEL_PROCESS_ID,model.getKey());
                   properties.put(MODEL_NAME,model.getName());
+                  properties.put(MODEL_NAMESPACE,model.getCategory());
                   editorJsonNode.put("properties",properties);
               }
                 modelNode.put("model", editorJsonNode);
@@ -315,13 +327,16 @@ public class ActModelServiceImpl implements ActModelService{
     }
 
     @Override
-    public List<ActModel> processListAll(String key, String name) {
+    public List<ActModel> processListAll(String key, String name,String category) {
         ProcessDefinitionQuery query = repositoryService.createProcessDefinitionQuery();
         if (name!=null && name.trim().length()>0) {
             query.processDefinitionNameLike(name);
         }
         if(key!=null && key.trim().length()>0){
             query.processDefinitionKey(key);
+        }
+        if(StringUtils.isNotBlank(category)){
+            query.processDefinitionCategory(category);
         }
         // 执行查询
         List<ProcessDefinition> list = query.latestVersion().orderByProcessDefinitionVersion().desc().list();

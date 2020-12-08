@@ -43,7 +43,7 @@ public class ActInstanceController extends BaseController {
     private ActModelService actModelService;
 
     @GetMapping("/historyList")
-    public ModelAndView historyList(String approvalCode,String userId,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
+    public ModelAndView historyList(String approvalCode,String userId,String category,@RequestParam(required = false,defaultValue ="1")Integer pageIndex,@RequestParam(required = false,defaultValue ="20")Integer pageSize){
         ModelAndView view=new ModelAndView("activiti/instance/historyList");
         Map<String,Object> selected=new HashMap<>();
         if(userId!=null && !userId.isEmpty()){
@@ -53,7 +53,7 @@ public class ActInstanceController extends BaseController {
         {
             selected.put("approvalCode",approvalCode);
         }
-        List<ActModel> modelList = actModelService.listAll(null , null);
+        List<ActModel> modelList = actModelService.listAll(null , null,category);
         view.addObject("modelList",modelList);
         view.addObject("selected",selected);
         return view;

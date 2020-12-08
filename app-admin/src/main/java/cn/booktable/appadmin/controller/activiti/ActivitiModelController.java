@@ -66,7 +66,7 @@ public class ActivitiModelController {
     }
 
     @PostMapping("/modelTable")
-    public ModelAndView modelTable(String name, String key,Boolean isProcess){
+    public ModelAndView modelTable(String name, String key,Boolean isProcess,String category){
         ModelAndView view=new ModelAndView("activiti/model/model_table");
         try {
             if(isProcess==null){
@@ -74,10 +74,10 @@ public class ActivitiModelController {
             }
             view.addObject("isProcess",isProcess);
             if(isProcess==null || !isProcess) {
-                List<ActModel> result = actModelService.listAll(key, name);
+                List<ActModel> result = actModelService.listAll(key, name,category);
                 view.addObject("modelList", result);
             }else{
-                List<ActModel> result = actModelService.processListAll(key, name);
+                List<ActModel> result = actModelService.processListAll(key, name,category);
                 view.addObject("modelList", result);
             }
         }catch (Exception ex)
@@ -148,13 +148,10 @@ public class ActivitiModelController {
         JsonView<Boolean> view=new JsonView<>();
         try {
 
-            ActResult<Boolean> result=actModelService.delete(modelId);
-            if(ActivitiUtils.isOkResult(result)) {
+            actModelService.delete(modelId,true);
+
                 ViewUtils.submitSuccess(view, messageSource);
-                view.setData(result.getData());
-            }else {
-                ViewUtils.submitFail(view,result.getMsg());
-            }
+
         } catch (Exception e) {
             ViewUtils.pushException(view,messageSource,e);
             logger.error("保存流程模型失败，错误信息:{}", e);

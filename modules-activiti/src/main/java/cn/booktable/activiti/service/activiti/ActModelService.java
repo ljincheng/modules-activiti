@@ -12,6 +12,7 @@ public interface ActModelService {
 
     public String MODEL_ID = "modelId";
     public String MODEL_NAME = "name";
+    public String MODEL_NAMESPACE = "process_namespace";
     public String MODEL_REVISION = "revision";
     public String MODEL_DESCRIPTION = "description";
 
@@ -21,9 +22,9 @@ public interface ActModelService {
 
     ActResult<String> save(ActModel model);
 
-    ActResult<Boolean> delete(String modelId);
+    void delete(String modelId,boolean enforce);
 
-    List<ActModel> listAll(String key,String name);
+    List<ActModel> listAll(String key,String name,String category);
 
     ActResult<Object> getEditSource(String modelId);
 
@@ -33,7 +34,7 @@ public interface ActModelService {
 
     ActResult<InputStream> image(String id);
 
-    List<ActModel> processListAll(String key,String name);
+    List<ActModel> processListAll(String key,String name,String category);
 
 
     ActResult<InputStream> exportBpmnModel(String modelId);

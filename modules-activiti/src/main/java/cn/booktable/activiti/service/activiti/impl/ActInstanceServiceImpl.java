@@ -1,14 +1,12 @@
 package cn.booktable.activiti.service.activiti.impl;
 
-import cn.booktable.activiti.core.ActErrorCodeEnum;
-import cn.booktable.activiti.core.ActStatus;
-import cn.booktable.activiti.core.ActStopCmd;
-import cn.booktable.activiti.core.SecurityUtil;
+import cn.booktable.activiti.core.*;
 import cn.booktable.activiti.entity.activiti.*;
 import cn.booktable.activiti.service.activiti.ActInstanceService;
 import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.activiti.utils.AssertUtils;
 import cn.booktable.core.page.PageDo;
+import cn.booktable.util.StringUtils;
 import org.activiti.bpmn.model.*;
 import org.activiti.engine.*;
 import org.activiti.engine.history.*;
@@ -26,6 +24,7 @@ import org.activiti.image.ProcessDiagramGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -52,6 +51,8 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     private ProcessDiagramGenerator processDiagramGenerator;
     @Autowired
     private SecurityUtil securityUtil;
+    @Autowired
+    private ActApproveEventHandler actApproveEventHandler;
 
     @Override
     public List<ActInstance> queryListAll(String approvalCode,String deploymentId) {
@@ -354,6 +355,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             return result;
         }
 
+        actApproveEventHandler.notice(null,null,status);
         ActivitiUtils.setOkResult(result);
         return result;
     }
@@ -607,7 +609,9 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     @Override
     public PageDo<ActInstance> createInstanceListPage(int pageIndex, int pageSize, String createUserId, Map<String, Object> selected) {
         HistoricProcessInstanceQuery instanceQuery= historyService.createHistoricProcessInstanceQuery();
-        instanceQuery.startedBy(createUserId);
+        if(StringUtils.isNotBlank(createUserId)) {
+            instanceQuery.startedBy(createUserId);
+        }
         if(selected!=null){
             Object approvalCode=selected.get("approvalCode");
             Object instanceCode=selected.get("instanceCode");
