@@ -291,4 +291,27 @@ public class ActivitiUtils {
         }
         return null;
     }
+
+    public static String approvalStatusToName(String status)
+    {
+        String approvalType=status;
+        if(status!=null && status.length()>0) {
+            if (ActStatus.INSTANCE_PENDING.equals(status)) {
+                approvalType = "审批中";
+            } else if (ActStatus.INSTANCE_APPROVED.equals(status) ) {
+                approvalType = "通过";
+            } else if (ActStatus.INSTANCE_REJECTED.equals(status)) {
+                approvalType = "拒绝";
+            } else if (ActStatus.INSTANCE_CANCELED.equals(status)) {
+                approvalType = "撤回";
+            } else if (ActStatus.INSTANCE_DELETED.equals(status)) {
+                approvalType = "删除";
+            } else if (ActStatus.INSTANCE_DONE.equals(status)) {
+                approvalType = "已完成";
+            }else if (ActStatus.START.equals(status)) {
+                approvalType = "已提交";
+            }
+        }
+        return approvalType;
+    }
 }

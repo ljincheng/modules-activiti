@@ -21,4 +21,5 @@ public class ActTimeline {
 
     private String userName;
     private List<String> userNames;
+    private String receiver;
 }

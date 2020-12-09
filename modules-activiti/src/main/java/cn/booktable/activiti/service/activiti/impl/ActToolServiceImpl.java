@@ -35,17 +35,28 @@ public class ActToolServiceImpl implements ActToolService {
         List<ActTimeline> myTimelineList= actInstance.getTimelineList();
         if(myTimelineList!=null){
             myTimelineList.stream().forEach(t->{
+                StringBuffer receiverSB=new StringBuffer();
                 String realName= userMap.get(t.getUserId());
-                t.setUserName(realName);
+                if(StringUtils.isNotBlank(realName)) {
+                    t.setUserName(realName);
+                    receiverSB.append(realName);
+                }
 
                 if(t.getUsers()!=null && t.getUsers().size()>0){
                     List<String> userNames=new ArrayList<>();
                     for(int i=0,k=t.getUsers().size();i<k;i++){
                         String realnames=userMap.get(t.getUsers().get(i));
-                        userNames.add(realnames);
+                        if(StringUtils.isNotBlank(realnames)) {
+                            userNames.add(realnames);
+                            if (receiverSB.length() > 0) {
+                                receiverSB.append(";");
+                            }
+                            receiverSB.append(realnames);
+                        }
                     }
                     t.setUserNames(userNames);
                 }
+                t.setReceiver(receiverSB.toString());
             });
         }
     }

@@ -1,0 +1,21 @@
+{
+	"approval": {
+		"INCOMEINPUT100": {
+			"memo":"合同流程",
+			"form": [{"name": "编号",          "id": "projectId","type": "string"},
+				{"name": "项目名称",       "id": "projectName","type": "string"},
+				{"name": "采购信息",       "id": "purchaseTable",
+					"type": "list",
+					"itemMap": [{"id": "payUser","name": "付款人"}
+					,{"id": "payAmount","name": "金额"}
+					,{"id": "payType","name": "收款方式"}
+					,{"id": "createTime","name": "录入时间"}
+					,{"id": "remark","name": "备注"}
+					,{"id": "status","name": "审批状态"}
+					]
+				}
+			],
+			"attachments": []
+		}
+	}
+}

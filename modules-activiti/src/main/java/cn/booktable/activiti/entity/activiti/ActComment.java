@@ -9,10 +9,13 @@ public class ActComment {
     private  String userId;
     private String id;
     private String comment;
-    private Date  createTime;
+    private Date   createTime;
     private String taskId;
     private String status;
     private String message;
 
     private String userName;
+    private String nodeName;
+    private String nodeKey;
+    private String statusName;
 }

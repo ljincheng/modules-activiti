@@ -7,11 +7,15 @@ import cn.booktable.activiti.utils.ActivitiUtils;
 import cn.booktable.activiti.utils.AssertUtils;
 import cn.booktable.core.page.PageDo;
 import cn.booktable.util.StringUtils;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.bpmn.model.*;
 import org.activiti.engine.*;
 import org.activiti.engine.history.*;
 import org.activiti.engine.impl.HistoricProcessInstanceQueryProperty;
 import org.activiti.engine.impl.RepositoryServiceImpl;
+import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
@@ -27,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -147,26 +152,51 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         {
             for(int i=0,k=commentList.size();i<k;i++){
                 Comment comment=commentList.get(i);
-                ActComment actComment=new ActComment();
-                actComment.setComment(comment.getFullMessage());
-                actComment.setId(comment.getId());
-                actComment.setUserId(comment.getUserId());
-                actComment.setCreateTime(comment.getTime());
-                actComment.setTaskId(comment.getTaskId());
-                actComment.setStatus(ActivitiUtils.calculateCommentStatus(comment));
-                String fullMessage=comment.getFullMessage();
-                if(fullMessage.startsWith("[") && fullMessage.indexOf("]")>0){
-                    int endStatusIndex=fullMessage.indexOf("]");
-                    String status=fullMessage.substring(1,endStatusIndex);
-                    actComment.setStatus(status);
-                    actComment.setMessage(fullMessage.substring(endStatusIndex+1));
+
+                String fullMsg=comment.getFullMessage();
+                if(fullMsg!=null && fullMsg.length()>0 && fullMsg.charAt(0)=='{'){
+                    ObjectMapper objectMapper=new ObjectMapper();
+                    try {
+                        ActComment actComment = objectMapper.readValue(comment.getFullMessage(), ActComment.class);
+                        actComment.setStatusName(ActivitiUtils.approvalStatusToName(actComment.getStatus()));
+                        actCommentList.add(actComment);
+                    }catch (JsonParseException ex){
+                        throw new ActException(ex);
+                    }catch (IOException ex2){
+                        throw new ActException(ex2);
+                    }
                 }else {
-                    actComment.setMessage(fullMessage);
+                    ActComment actComment = new ActComment();
+                    actComment.setComment(comment.getFullMessage());
+                    actComment.setId(comment.getId());
+                    actComment.setUserId(comment.getUserId());
+                    actComment.setCreateTime(comment.getTime());
+                    actComment.setTaskId(comment.getTaskId());
+                    actComment.setStatus(ActivitiUtils.calculateCommentStatus(comment));
+                    actComment.setStatusName(ActivitiUtils.approvalStatusToName(actComment.getStatus()));
+                    String fullMessage = comment.getFullMessage();
+                    if (fullMessage.startsWith("[") && fullMessage.indexOf("]") > 0) {
+                        int endStatusIndex = fullMessage.indexOf("]");
+                        String status = fullMessage.substring(1, endStatusIndex);
+                        actComment.setStatus(status);
+                        actComment.setMessage(fullMessage.substring(endStatusIndex + 1));
+                    } else {
+                        actComment.setMessage(fullMessage);
+                    }
+                    actCommentList.add(actComment);
                 }
-                actCommentList.add(actComment);
             }
 
         }
+        ActComment startComment=new ActComment();
+        startComment.setComment("[START]提交");
+        startComment.setUserId(actInstance.getUserId());
+        startComment.setCreateTime(actInstance.getStartTime());
+        startComment.setStatus(ActStatus.START);
+        startComment.setMessage("提交");
+        startComment.setNodeName("提交");
+        startComment.setStatusName(ActivitiUtils.approvalStatusToName(ActStatus.START));
+        actCommentList.add(startComment);
 
 //        List<ActTimeline> historyTimelines=new ArrayList<>();
         List<ActTimeline> timelines=new ArrayList<>();
@@ -326,12 +356,29 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         if(isGroupUserTask){
             taskService.claim(task.getId(),userId);
         }
+
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
+        ExecutionEntity execution = (ExecutionEntity) runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
+        FlowElement currentFlowEl = bpmnModel.getFlowElement(execution.getActivityId());
+
         // 使用任务ID，完成当前人的个人任务，同时流程变量
-        String taskComment="["+status+"]";
-        if(comments!=null){
-            taskComment=taskComment+comments;
+        ActComment actComment=new ActComment();
+        actComment.setMessage(comments);
+        actComment.setUserId(userId);
+        actComment.setStatus(status);
+        actComment.setTaskId(taskId);
+        actComment.setNodeName(currentFlowEl.getName());
+        actComment.setNodeKey(currentFlowEl.getId());
+//        String taskComment="["+status+"]";
+//        if(comments!=null){
+//            taskComment=taskComment+comments;
+//        }
+        try {
+            String comment=new ObjectMapper().writeValueAsString(actComment);
+            Comment myComment = taskService.addComment(taskId, processInstanceId, comment);
+        }catch (JsonProcessingException ex){
+            throw new ActException(ex);
         }
-        Comment myComment=  taskService.addComment(taskId, processInstanceId, taskComment);
         taskService.setVariable(taskId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
         runtimeService.setVariable(processInstanceId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
 
@@ -359,6 +406,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         }catch (Exception ex){
             logger.error("审批通知异常",ex);
         }
+
         ActivitiUtils.setOkResult(result);
         return result;
     }
