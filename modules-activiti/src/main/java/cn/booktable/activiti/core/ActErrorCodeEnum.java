@@ -16,7 +16,10 @@ public enum ActErrorCodeEnum {
     EXCLUDE_APPROVALSTATUS("审批状态不能为空",10012),
     FAIL_INSTANCESTART("创建审批实例失败",10013),
     UNEXIST_MODEL("流程模型不存在",10014),
-    NOTEMPTY_MODEL_INSTANCE("存在流程模型审批实例不为空",10015);
+    NOTEMPTY_MODEL_INSTANCE("存在流程模型审批实例不为空",10015),
+    UNCANCELED_INSTANCE_OWNER("不是申请者不能撤回操作",10016),
+    UNEXIST_INSTANCE("审批实例不存在",10017),
+    ERROR_FORMAT_DATE("日期格式不正确",10018);
 
     private String msg;
     private int code;

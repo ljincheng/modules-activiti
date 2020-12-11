@@ -119,7 +119,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         if(historicProcessInstance!=null){
             processDefinitionId=historicProcessInstance.getProcessDefinitionId();
             ActivitiUtils.parseInstance(historicProcessInstance,actInstance);
-            List<HistoricVariableInstance> formList=historyService.createHistoricVariableInstanceQuery().processInstanceId(historicProcessInstance.getId()).variableName("form").list();
+            List<HistoricVariableInstance> formList=historyService.createHistoricVariableInstanceQuery().processInstanceId(historicProcessInstance.getId()).variableName(ActivitiUtils.INSTANCE_VAR_FORM).list();
             if(formList!=null && formList.size()>0){
                 Object formObj=formList.get(0).getValue();
                 actInstance.setForm(ActivitiUtils.convertJsonObjectToMap(formObj));
@@ -150,6 +150,22 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         actInstance.setCommentList(actCommentList);
         if(commentList!=null)
         {
+            if(ActStatus.INSTANCE_CANCELED.equals(actInstance.getStatus())){
+
+                HistoricVariableInstance canceledInstance= historyService.createHistoricVariableInstanceQuery().processInstanceId(actInstance.getId()).variableValueEquals(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.INSTANCE_CANCELED).singleResult();
+                if(canceledInstance!=null) {
+                    actInstance.setEndTime(canceledInstance.getTime());
+                    ActComment canceledComment = new ActComment();
+                    canceledComment.setStatusName(ActivitiUtils.approvalStatusToName(ActStatus.INSTANCE_CANCELED));
+                    canceledComment.setStatus(ActStatus.INSTANCE_CANCELED);
+                    canceledComment.setComment("[" + canceledComment.getStatus() + "]" + canceledComment.getStatusName());
+                    canceledComment.setUserId(actInstance.getUserId());
+                    canceledComment.setCreateTime(canceledInstance.getTime());
+                    canceledComment.setMessage(canceledComment.getStatusName());
+                    canceledComment.setNodeName("提交");
+                    actCommentList.add(canceledComment);
+                }
+            }
             for(int i=0,k=commentList.size();i<k;i++){
                 Comment comment=commentList.get(i);
 
@@ -159,6 +175,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                     try {
                         ActComment actComment = objectMapper.readValue(comment.getFullMessage(), ActComment.class);
                         actComment.setStatusName(ActivitiUtils.approvalStatusToName(actComment.getStatus()));
+                        actComment.setCreateTime(comment.getTime());
                         actCommentList.add(actComment);
                     }catch (JsonParseException ex){
                         throw new ActException(ex);
@@ -189,13 +206,13 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
         }
         ActComment startComment=new ActComment();
-        startComment.setComment("[START]提交");
+        startComment.setStatus(ActStatus.START);
+        startComment.setStatusName(ActivitiUtils.approvalStatusToName(ActStatus.START));
+        startComment.setComment("["+startComment.getStatus()+"]"+startComment.getStatusName());
         startComment.setUserId(actInstance.getUserId());
         startComment.setCreateTime(actInstance.getStartTime());
-        startComment.setStatus(ActStatus.START);
         startComment.setMessage("提交");
         startComment.setNodeName("提交");
-        startComment.setStatusName(ActivitiUtils.approvalStatusToName(ActStatus.START));
         actCommentList.add(startComment);
 
 //        List<ActTimeline> historyTimelines=new ArrayList<>();
@@ -320,68 +337,68 @@ public class ActInstanceServiceImpl implements ActInstanceService {
     @Override
     public ActResult<Void> approve(String taskId, String instanceCode,String status, String comments, String userId, Map<String, Object> variables) {
         ActResult<Void> result=new ActResult<>();
-        AssertUtils.isNotBlank(taskId, ActErrorCodeEnum.EMPTY_TASKID);
         AssertUtils.isNotBlank(instanceCode, ActErrorCodeEnum.EMPTY_INSTANCECODE);
         AssertUtils.isNotBlank(status, ActErrorCodeEnum.EMPTY_APPROVALSTATUS);
         AssertUtils.hasIn(status, ActErrorCodeEnum.EXCLUDE_APPROVALSTATUS,ActStatus.INSTANCE_APPROVED,ActStatus.INSTANCE_REJECTED,ActStatus.INSTANCE_CANCELED,ActStatus.INSTANCE_DELETED);
-
-        TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode).active().taskId(taskId);
-        long num=taskQuery.count();
-        AssertUtils.isTrue(num>0, ActErrorCodeEnum.UNEXIST_ACTIVETASK);
-
-
+        Task task =null;
+        ProcessInstance processInstance =null;
+        String processInstanceId =null;
+        boolean isGroupUserTask=false;//是否是用户组
         // 使用任务ID，查询任务对象，获取流程流程实例ID
         securityUtil.logInAs(userId);
-        Task task =taskQuery.singleResult();
-        boolean isGroupUserTask=false;
-        String taskUserId=task.getAssignee();
-        if(taskUserId!=null && taskUserId.length()>0){//单个审批人
-            AssertUtils.isTrue((ActStatus.START.equals(status) || taskUserId.equals(userId)), ActErrorCodeEnum.INVALID_APPROVALUSER);
-        }else {
-            List<Task> groupTask=taskService.createTaskQuery().taskCandidateUser(userId).taskId(taskId).list();
-            if(groupTask!=null && groupTask.size()>0){
-                task=groupTask.get(0);
-                isGroupUserTask=true;
-            }else  if(!ActStatus.START.equals(status)) {
-                ActivitiUtils.setFailResult(result, "当前流程节点没有设置审批人");
-                return result;
-            }
-        }
-
-        // 获取流程实例ID
-        String processInstanceId = task.getProcessInstanceId();
-        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+        processInstance=runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(instanceCode).singleResult();
+        AssertUtils.notNull(processInstance,ActErrorCodeEnum.UNEXIST_INSTANCE);
+        processInstanceId=processInstance.getId();
         boolean suspended = processInstance.isSuspended();
         AssertUtils.isTrue(!suspended,ActErrorCodeEnum.INSTANCE_SUSPENDED);
-        if(isGroupUserTask){
-            taskService.claim(task.getId(),userId);
+
+
+        if(status.equals(ActStatus.INSTANCE_CANCELED)){
+            AssertUtils.isTrue(userId.equals(processInstance.getStartUserId()),ActErrorCodeEnum.UNCANCELED_INSTANCE_OWNER);
+        }else{
+            AssertUtils.isNotBlank(taskId, ActErrorCodeEnum.EMPTY_TASKID);
+            TaskQuery taskQuery=taskService.createTaskQuery().processInstanceBusinessKey(instanceCode).active().taskId(taskId);
+            long num=taskQuery.count();
+            AssertUtils.isTrue(num>0, ActErrorCodeEnum.UNEXIST_ACTIVETASK);
+            task =taskQuery.singleResult();
+            String taskUserId=task.getAssignee();
+            if(taskUserId!=null && taskUserId.length()>0){//单个审批人
+                AssertUtils.isTrue((ActStatus.START.equals(status) || taskUserId.equals(userId)), ActErrorCodeEnum.INVALID_APPROVALUSER);
+            }else {
+                List<Task> groupTask=taskService.createTaskQuery().taskCandidateUser(userId).taskId(taskId).list();
+                if(groupTask!=null && groupTask.size()>0){
+                    task=groupTask.get(0);
+                    isGroupUserTask=true;
+                }else  if(!ActStatus.START.equals(status)) {
+                    ActivitiUtils.setFailResult(result, "当前流程节点没有设置审批人");
+                    return result;
+                }
+            }
+            //　处理审批操作意见
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
+            ExecutionEntity execution = (ExecutionEntity) runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
+            FlowElement currentFlowEl = bpmnModel.getFlowElement(execution.getActivityId());
+            ActComment actComment=new ActComment();
+            actComment.setMessage(comments);
+            actComment.setUserId(userId);
+            actComment.setStatus(status);
+            actComment.setTaskId(taskId);
+            actComment.setNodeName(currentFlowEl.getName());
+            actComment.setNodeKey(currentFlowEl.getId());
+            try {
+                String comment=new ObjectMapper().writeValueAsString(actComment);
+                Comment myComment = taskService.addComment(taskId,processInstanceId, comment);
+            }catch (JsonProcessingException ex){
+                throw new ActException(ex);
+            }
+            taskService.setVariable(taskId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
+            if(isGroupUserTask){
+                taskService.claim(task.getId(),userId);
+            }
+
         }
 
-        BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
-        ExecutionEntity execution = (ExecutionEntity) runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
-        FlowElement currentFlowEl = bpmnModel.getFlowElement(execution.getActivityId());
-
-        // 使用任务ID，完成当前人的个人任务，同时流程变量
-        ActComment actComment=new ActComment();
-        actComment.setMessage(comments);
-        actComment.setUserId(userId);
-        actComment.setStatus(status);
-        actComment.setTaskId(taskId);
-        actComment.setNodeName(currentFlowEl.getName());
-        actComment.setNodeKey(currentFlowEl.getId());
-//        String taskComment="["+status+"]";
-//        if(comments!=null){
-//            taskComment=taskComment+comments;
-//        }
-        try {
-            String comment=new ObjectMapper().writeValueAsString(actComment);
-            Comment myComment = taskService.addComment(taskId, processInstanceId, comment);
-        }catch (JsonProcessingException ex){
-            throw new ActException(ex);
-        }
-        taskService.setVariable(taskId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
         runtimeService.setVariable(processInstanceId,ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,status);
-
         if(ActStatus.INSTANCE_APPROVED.equals(status) || ActStatus.START.equals(status)) {
             Object formObj= runtimeService.getVariable(processInstance.getId(),ActivitiUtils.INSTANCE_VAR_FORM);
             if(formObj!=null) {
@@ -402,7 +419,7 @@ public class ActInstanceServiceImpl implements ActInstanceService {
             return result;
         }
         try{
-            actApproveEventHandler.notice(ActivitiUtils.parseInstance(processInstance,null),ActivitiUtils.parseTask(task),status);
+            actApproveEventHandler.notice(ActivitiUtils.parseInstance(processInstance,null),task==null?null:ActivitiUtils.parseTask(task),status);
         }catch (Exception ex){
             logger.error("审批通知异常",ex);
         }
@@ -415,7 +432,12 @@ public class ActInstanceServiceImpl implements ActInstanceService {
 
 
     @Override
-    public ActResult<String> create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables,Map<String,Object> form) {
+    public ActInstance create(String approvalCode, String instanceCode, String userId, String name, Map<String, Object> variables,Map<String,Object> form) {
+        AssertUtils.isNotBlank(approvalCode,ActErrorCodeEnum.EMPTY_APPROVALCODE);
+        AssertUtils.isNotBlank(instanceCode,ActErrorCodeEnum.EMPTY_INSTANCECODE);
+        AssertUtils.isNotBlank(userId,ActErrorCodeEnum.EMPTY_USERID);
+        AssertUtils.isNotBlank(name,ActErrorCodeEnum.EMPTY_INSTANCENAME);
+
         ActResult<String> result=new ActResult<>();
         long num= runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(instanceCode).processDefinitionKey(approvalCode).count();
         AssertUtils.isTrue(num==0, ActErrorCodeEnum.EXIST_INSTANCECODE);
@@ -427,12 +449,8 @@ public class ActInstanceServiceImpl implements ActInstanceService {
                 .businessKey(instanceCode).variable(ActivitiUtils.INSTANCE_VAR_APPROVALSTATUS,ActStatus.START).variable(ActivitiUtils.INSTANCE_VAR_FORM, form)
                 .name(name)
                 .start();
-        if(processInstance!=null) {
-            ActivitiUtils.setOkResult(result);
-        }else {
-            ActivitiUtils.setFailResult(result,"发起实例失败");
-        }
-        return result;
+        AssertUtils.notNull(processInstance,ActErrorCodeEnum.FAIL_INSTANCESTART);
+        return ActivitiUtils.parseInstance(processInstance,null);
     }
 
     @Override
@@ -440,80 +458,239 @@ public class ActInstanceServiceImpl implements ActInstanceService {
         securityUtil.logInAs(userId);
         List<ActTask> myTaskList=new ArrayList<>();
         TaskQuery taskQuery = taskService.createTaskQuery().taskCandidateOrAssigned(userId).active();
+        ProcessInstanceQuery instanceQuery=null;
+        List<ProcessInstance> instanceList=null;
         if(selected!=null){
-            Object approvalCode=selected.get("approvalCode");
-            Object instanceCode=selected.get("instanceCode");
-            if(approvalCode!=null && !approvalCode.toString().isEmpty()){
-                taskQuery.processDefinitionKey(approvalCode.toString());
-            }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
-                taskQuery.processInstanceBusinessKey(instanceCode.toString());
+            String approvalCode=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_APPROVALCODE);
+            String approvalName=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_APPROVALNAME);
+            String instanceCode=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCECODE);
+            String instanceName=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCENAME);
+            String instanceUserId=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCEUSERID);
+            Date iStartTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_INSTANCETIME_START,ActivitiUtils.FORMAT_DATE);
+            Date iEndTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_INSTANCETIME_END,ActivitiUtils.FORMAT_DATE);
+            Date tStartTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_START,ActivitiUtils.FORMAT_DATE);
+            Date tEndTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_END,ActivitiUtils.FORMAT_DATE);
+            Date tOnTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_ON,ActivitiUtils.FORMAT_DATE);
+
+            if(tStartTime!=null){
+                taskQuery.taskCreatedAfter(tStartTime);
             }
+            if(tEndTime!=null){
+                taskQuery.taskCreatedBefore(tEndTime);
+            }
+            if(tOnTime!=null){
+                taskQuery.taskCreatedOn(tOnTime);
+            }
+
+            //处理instanceＱuery的过滤条件
+            boolean hasInstanceName= org.apache.commons.lang3.StringUtils.isNotBlank(instanceName);
+            boolean hasInstanceUserId= org.apache.commons.lang3.StringUtils.isNotBlank(instanceUserId);
+            boolean hasInstanceStartTime=iStartTime!=null;
+            boolean hasInstanceEndTime=iEndTime!=null;
+            if(hasInstanceName || hasInstanceUserId || hasInstanceStartTime || hasInstanceEndTime){
+                instanceQuery=runtimeService.createProcessInstanceQuery().active();
+                if(hasInstanceName){
+                    instanceQuery.processInstanceNameLike("%"+instanceName+"%");
+                }
+                if(hasInstanceUserId) {
+                    instanceQuery.startedBy(instanceUserId);
+                }
+                if(hasInstanceStartTime) {
+                    instanceQuery.startedAfter(iStartTime);
+                }
+                if(hasInstanceEndTime){
+                    instanceQuery.startedBefore(iEndTime);
+                }
+            }
+            if(org.apache.commons.lang3.StringUtils.isNotBlank(approvalCode)){
+                taskQuery.processDefinitionKey(approvalCode);
+                if(instanceQuery!=null){
+                    instanceQuery.processDefinitionKey(approvalCode);
+                }
+            }
+            if(org.apache.commons.lang3.StringUtils.isNotBlank(instanceCode)){
+                taskQuery.processInstanceBusinessKey(instanceCode);
+                if(instanceQuery!=null){
+                    instanceQuery.processInstanceBusinessKey(instanceCode);
+                }
+            }
+            if( org.apache.commons.lang3.StringUtils.isNotBlank(approvalName)){
+                taskQuery.processDefinitionNameLike("%"+approvalName+"%");
+            }
+
         }
+        if(instanceQuery!=null){
+            long instanceNum=instanceQuery.count();
+            if(instanceNum==0){
+//                PageData<ActTask> result=new PageData<>(myTaskList,0);
+                PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
+                result.setTotalNum(0);
+                return result;
+            }
+//            if(instanceNum<1000){
+            instanceList=instanceQuery.list();
+            List<String> instanceIdList= instanceList.stream().map(ProcessInstance::getId).collect(Collectors.toList());
+            taskQuery.processInstanceIdIn(instanceIdList);
+//            }
+
+        }
+
         long count=taskQuery.count();
-        PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
-        result.setTotalNum(count);
         if(count>0) {
             List<Task> tasks = taskQuery.orderByTaskCreateTime().desc().listPage((pageIndex - 1) * pageSize, pageSize);
-            for (Task task : tasks) {
-                String processInstanceId = task.getProcessInstanceId();
-                ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).active().singleResult();
-                if (processInstance == null) {
-                    continue;
-                }
-                ActTask actTask = ActivitiUtils.parseTask(task);
-                actTask.setInstance(ActivitiUtils.parseInstance(processInstance, null));
-                myTaskList.add(actTask);
-
+            if(instanceList==null){
+                Set<String> instanceIdList= tasks.stream().map(Task::getProcessInstanceId).collect(Collectors.toSet());
+                instanceList=runtimeService.createProcessInstanceQuery().processInstanceIds(instanceIdList).list();
             }
-            result.setPage(myTaskList);
+            if(instanceList!=null){
+                for(int i=0,k=tasks.size();i<k;i++){
+                    Task task=tasks.get(i);
+                    ProcessInstance instance= instanceList.stream().filter(t->t.getId().equals(task.getProcessInstanceId())).findFirst().get();
+                    if(instance!=null) {
+                        ActTask actTask = ActivitiUtils.parseTask(task);
+                        actTask.setInstance(ActivitiUtils.parseInstance(instance, null));
+                        myTaskList.add(actTask);
+                    }
+                }
+            }
+
         }
+        PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
+        result.setTotalNum(count);
+        result.setPage(myTaskList);
         return result;
+
     }
 
     @Override
     public PageDo<ActTask> finishedTask(String userId, String groupId,int pageIndex,int pageSize,Map<String,Object> selected) {
         PageDo<ActTask> result=new PageDo<>(Long.valueOf(pageIndex),pageSize);
         securityUtil.logInAs(userId);
-        HistoricTaskInstanceQuery instanceQuery= historyService.createHistoricTaskInstanceQuery();
-        instanceQuery.taskAssignee(userId);
-//        HistoricProcessInstanceQuery instanceQuery= historyService.createHistoricProcessInstanceQuery();
+        HistoricTaskInstanceQuery taskInstanceQuery= historyService.createHistoricTaskInstanceQuery();
+        taskInstanceQuery.taskAssignee(userId);
+        HistoricProcessInstanceQuery instanceQuery=null;
+        List<HistoricProcessInstance> instanceList=null;
 //        instanceQuery.involvedUser(userId);
+        List<ActTask> page = new ArrayList<>();
         if(selected!=null){
-            Object approvalCode=selected.get("approvalCode");
-            Object instanceCode=selected.get("instanceCode");
-            if(approvalCode!=null && !approvalCode.toString().isEmpty()){
-                instanceQuery.processDefinitionKey(approvalCode.toString());
-            }if(instanceCode!=null && !instanceCode.toString().isEmpty()){
-                instanceQuery.processInstanceBusinessKey(instanceCode.toString());
-            }
-        }
+            String approvalCode=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_APPROVALCODE);
+            String approvalName=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_APPROVALNAME);
+            String instanceCode=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCECODE);
+            String instanceName=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCENAME);
+            String instanceUserId=ActivitiUtils.mapValueToString(selected,ActivitiUtils.KEY_INSTANCEUSERID);
+            Date iStartTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_INSTANCETIME_START,ActivitiUtils.FORMAT_DATE);
+            Date iEndTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_INSTANCETIME_END,ActivitiUtils.FORMAT_DATE);
+            Date tStartTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_START,ActivitiUtils.FORMAT_DATE);
+            Date tEndTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_END,ActivitiUtils.FORMAT_DATE);
+            Date tOnTime=ActivitiUtils.mapValueToDate(selected,ActivitiUtils.KEY_TASKTIME_ON,ActivitiUtils.FORMAT_DATE);
 
-        instanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc().finished();
-        long count=instanceQuery.count();
-        result.setTotalNum(count);
-        if(count>0) {
-            List<HistoricTaskInstance> hisList = instanceQuery.listPage((pageIndex - 1) * pageSize, pageSize);
-            List<ActTask> page = new ArrayList<>();
-            if (hisList != null) {
-                for (int i = 0, k = hisList.size(); i < k; i++) {
-                    HistoricTaskInstance task = hisList.get(i);
-                    String processInstanceId = task.getProcessInstanceId();
-                    HistoricProcessInstance processInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).includeProcessVariables().singleResult();
-                    if (processInstance == null) {
-                        continue;
-                    }
-                    ActTask actTask = ActivitiUtils.parseTask(task);
-                    ActInstance actInstance=new ActInstance();
-                    actTask.setInstance(ActivitiUtils.parseInstance(processInstance, actInstance));
-                    if(processInstance.getEndTime()==null && !ActStatus.INSTANCE_CANCELED.equals( actInstance.getStatus())){
-                        actInstance.setStatus(ActStatus.INSTANCE_PENDING);
-                    }
-                    page.add(actTask);
+
+
+            //处理instanceＱuery的过滤条件
+            boolean hasInstanceName=StringUtils.isNotBlank(instanceName);
+            boolean hasInstanceUserId=StringUtils.isNotBlank(instanceUserId);
+            boolean hasInstanceStartTime=iStartTime!=null;
+            boolean hasInstanceEndTime=iEndTime!=null;
+            if(hasInstanceName || hasInstanceUserId || hasInstanceStartTime || hasInstanceEndTime){
+                instanceQuery=historyService.createHistoricProcessInstanceQuery();
+                if(hasInstanceName){
+                    instanceQuery.processInstanceNameLike("%"+instanceName+"%");
+                }
+                if(hasInstanceUserId) {
+                    instanceQuery.startedBy(instanceUserId);
+                }
+                if(hasInstanceStartTime) {
+                    instanceQuery.startedAfter(iStartTime);
+                }
+                if(hasInstanceEndTime){
+                    instanceQuery.startedBefore(iEndTime);
                 }
             }
-            result.setPage(page);
+
+            if(StringUtils.isNotBlank(approvalCode)){
+                taskInstanceQuery.processDefinitionKey(approvalCode);
+                if(instanceQuery!=null){
+                    instanceQuery.processDefinitionKey(approvalCode);
+                }
+            }
+            if(StringUtils.isNotBlank(instanceCode)){
+                taskInstanceQuery.processInstanceBusinessKey(instanceCode);
+                if(instanceQuery!=null){
+                    instanceQuery.processInstanceBusinessKey(instanceCode);
+                }
+            }
+            if( StringUtils.isNotBlank(approvalName)){
+                taskInstanceQuery.processDefinitionNameLike("%"+approvalName+"%");
+            }
+
+            if(instanceQuery!=null){
+                long instanceNum=instanceQuery.count();
+                if(instanceNum==0){
+                    result.setTotalNum(0);
+                    return result;
+                }
+                if(instanceNum<1000){
+                    instanceList=instanceQuery.includeProcessVariables().list();
+                    List<String> instanceIdList= instanceList.stream().map(HistoricProcessInstance::getId).collect(Collectors.toList());
+                    taskInstanceQuery.processInstanceIdIn(instanceIdList);
+                }
+
+            }
+
         }
+
+        taskInstanceQuery.orderBy(HistoricProcessInstanceQueryProperty.START_TIME).desc();
+        long count=taskInstanceQuery.count();
+
+        if(count>0) {
+            List<HistoricTaskInstance> hisList = taskInstanceQuery.listPage((pageIndex - 1) * pageSize, pageSize);
+
+            if(instanceList==null && hisList!=null && hisList.size()>0){
+                Set<String> instanceIdList= hisList.stream().map(HistoricTaskInstance::getProcessInstanceId).collect(Collectors.toSet());
+                instanceList=historyService.createHistoricProcessInstanceQuery().processInstanceIds(instanceIdList).includeProcessVariables().list();
+            }
+            if(instanceList!=null){
+                for(int i=0,k=hisList.size();i<k;i++){
+                    HistoricTaskInstance task=hisList.get(i);
+                    HistoricProcessInstance instance= instanceList.stream().filter(t->t.getId().equals(task.getProcessInstanceId())).findFirst().get();
+                    if(instance!=null) {
+                        ActTask actTask = ActivitiUtils.parseTask(task);
+                        ActInstance actInstance=ActivitiUtils.parseInstance(instance, null);
+                        if(actInstance.getEndTime()==null && !ActStatus.INSTANCE_CANCELED.equals( actInstance.getStatus())){
+                            actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+                        }else {
+
+                        }
+                        actInstance.setForm(null);
+                        actTask.setInstance(actInstance);
+                        page.add(actTask);
+                    }
+                }
+            }
+
+//            if (hisList != null) {
+//                for (int i = 0, k = hisList.size(); i < k; i++) {
+//                    HistoricTaskInstance task = hisList.get(i);
+//                    String processInstanceId = task.getProcessInstanceId();
+//                    HistoricProcessInstance processInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).includeProcessVariables().singleResult();
+//                    if (processInstance == null) {
+//                        continue;
+//                    }
+//                    ActTask actTask = ActivitiUtils.parseTask(task);
+//                    ActInstance actInstance=new ActInstance();
+//                    actTask.setInstance(ActivitiUtils.parseInstance(processInstance, actInstance));
+//                    if(processInstance.getEndTime()==null && !ActStatus.INSTANCE_CANCELED.equals( actInstance.getStatus())){
+//                        actInstance.setStatus(ActStatus.INSTANCE_PENDING);
+//                    }
+//                    page.add(actTask);
+//                }
+//            }
+        }
+        result.setTotalNum(count);
+        result.setPage(page);
         return result;
+
+
     }
 
     @Override

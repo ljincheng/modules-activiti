@@ -1,5 +1,7 @@
 package cn.booktable.activiti.utils;
 
+import cn.booktable.activiti.core.ActErrorCodeEnum;
+import cn.booktable.activiti.core.ActException;
 import cn.booktable.activiti.entity.activiti.ActInstance;
 import cn.booktable.activiti.entity.activiti.ActResult;
 import cn.booktable.activiti.core.ActStatus;
@@ -16,7 +18,10 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +29,17 @@ public class ActivitiUtils {
 
     public static String INSTANCE_VAR_APPROVALSTATUS="ApprovalStatus";
     public static String INSTANCE_VAR_FORM="form";
+    public static String KEY_APPROVALCODE="approvalCode";
+    public static String KEY_APPROVALNAME="approvalName";
+    public static String KEY_INSTANCECODE="instanceCode";
+    public static String KEY_INSTANCENAME="instanceName";
+    public static String KEY_INSTANCEUSERID="instanceUserId";
+    public static String KEY_INSTANCETIME_START="iStartTime";
+    public static String KEY_INSTANCETIME_END="iEndTime";
+    public static String KEY_TASKTIME_START="tStartTime";
+    public static String KEY_TASKTIME_END="tEndTime";
+    public static String KEY_TASKTIME_ON="tOnTime";
+    public static String FORMAT_DATE="yyyy-MM-dd";
 
     /**
      * 获取流程走过的线
@@ -313,5 +329,36 @@ public class ActivitiUtils {
             }
         }
         return approvalType;
+    }
+
+
+    public static String mapValueToString(Map<String,Object> map,String key){
+        Object value=map.get(key);
+        if(value==null){
+            return null;
+        }
+        if(value instanceof String){
+            return (String)value;
+        }
+        return value.toString();
+    }
+
+    public static Date mapValueToDate(Map<String,Object> map, String key, String pattern){
+        Object value=map.get(key);
+        if(value==null){
+            return null;
+        }
+        if(value instanceof Date){
+            return (Date)value;
+        }
+
+        if(value.toString().length()>0) {
+            try {
+                return new SimpleDateFormat(pattern).parse(value.toString());
+            }catch (ParseException ex){
+                throw new ActException(ActErrorCodeEnum.ERROR_FORMAT_DATE.msg());
+            }
+        }
+        return null;
     }
 }

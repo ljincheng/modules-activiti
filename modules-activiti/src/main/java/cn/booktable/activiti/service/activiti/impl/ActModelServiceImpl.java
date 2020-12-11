@@ -330,7 +330,7 @@ public class ActModelServiceImpl implements ActModelService{
     public List<ActModel> processListAll(String key, String name,String category) {
         ProcessDefinitionQuery query = repositoryService.createProcessDefinitionQuery();
         if (name!=null && name.trim().length()>0) {
-            query.processDefinitionNameLike(name);
+            query.processDefinitionNameLike("%"+name+"%");
         }
         if(key!=null && key.trim().length()>0){
             query.processDefinitionKey(key);

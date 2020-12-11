@@ -103,8 +103,8 @@ public class ActInstanceController extends BaseController {
 
 
     @RequestMapping("/create/{approvalCode}")
-    public JsonView<String> create(@PathVariable("approvalCode") String approvalCode, String instanceCode, String name,   BigDecimal totalAmt,HttpServletRequest request){
-        JsonView<String> view=new JsonView<String>();
+    public JsonView<ActInstance> create(@PathVariable("approvalCode") String approvalCode, String instanceCode, String name,   BigDecimal totalAmt,HttpServletRequest request){
+        JsonView<ActInstance> view=new JsonView<ActInstance>();
         Map<String,Object> variables=getRequestToParamMap(request);
        variables.remove("instanceCode");
        variables.remove("name");
@@ -116,11 +116,12 @@ public class ActInstanceController extends BaseController {
         }
         String userId=currentUser().getId().toString();
 
-        ActResult<String> result=actInstanceService.create(approvalCode,instanceCode,userId,name,null,variables);
-        if(ActivitiUtils.isOkResult(result)) {
-            ViewUtils.submitSuccess(view, messageSource);
+        ActInstance result=actInstanceService.create(approvalCode,instanceCode,userId,name,null,variables);
+        if(result!=null) {
+            view.setData(result);
+            ViewUtils.submitSuccess(view,messageSource);
         }else{
-            ViewUtils.submitFail(view,result.getMsg());
+            ViewUtils.submitFail(view,"fail");
         }
         return view;
     }
