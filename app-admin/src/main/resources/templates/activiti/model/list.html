@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:secure="http://dev.booktable.cn/thymeleaf/shiro">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://dev.booktable.cn/thymeleaf/shiro">
 <head>
     <meta charset="UTF-8">
     <title></title>
@@ -15,6 +15,7 @@
             <a class="nav-link" data-toggle="tab" href="#deployedListTab" >已部署
 
             </a>
+
             <a class="nav-link" data-toggle="tab" href="#deployTab" th:text="#{i18n.addNew}">Add
 
             </a>
@@ -28,8 +29,22 @@
         <div class="tab-pane in active" id="listTab">
             <div class="card">
                 <div class="card-header">
-                    <form id="form_model_list" name="form" method="post" class="form-inline">
+                    <form id="form_model_list" name="form" method="post" class="form-inline" >
+
                     </form>
+
+                    <shiro:dataGrid id="testForm1" th:each="modelObj,status: ${modelList}"  url="/apps/activiti/list" formId="test1">
+                        <div th:text="${modelObj?.category}"></div>
+                        <div th:text="${modelObj?.name}"></div>
+                        <div th:text="${modelObj?.key}"></div>
+                        <div th:text="${modelObj?.id}"></div>
+                    </shiro:dataGrid>
+                    <br>
+                    <shiro:principal   property="realName"></shiro:principal>
+                    <br> <hr><br>
+                    <a  shiro:principal="test"  property="realName"  class="nav-link" data-toggle="tab" href="#deployTab"  >Update
+                    </a>
+
                 </div>
                 <div class="card-body table-responsive" id="modelList">
                 </div>

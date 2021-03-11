@@ -62,6 +62,8 @@ public class ActivitiModelController {
     @GetMapping("/list")
     public ModelAndView modelList(String name, String key){
         ModelAndView view=new ModelAndView("activiti/model/list");
+        List<ActModel> result = actModelService.listAll(key, name,null);
+        view.addObject("modelList", result);
         return view;
     }
 

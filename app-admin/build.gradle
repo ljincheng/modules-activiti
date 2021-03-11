@@ -12,7 +12,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    implementation "cn.booktable:thymeleaf-shiro:${booktableVersion}"
+//    implementation "cn.booktable:thymeleaf-shiro:${booktableVersion}"
     implementation "cn.booktable:modules-elasticsearch:${booktableVersion}"
     implementation "cn.booktable:booktable-common:${booktableVersion}"
     implementation "cn.booktable:booktable-core:${booktableVersion}"
@@ -27,6 +27,7 @@ dependencies {
 
 //    implementation "org.activiti:activiti-spring-boot-starter:7.1.0.M2"
     compile project(":modules-activiti");
+    compile project(":thymeleaf-shiro");
 
     runtimeOnly 'mysql:mysql-connector-java'
 }
